@@ -162,6 +162,29 @@ input,select{font:inherit}
 .tlh{display:flex;justify-content:space-between;margin:6px 0 0 72px;font-family:var(--mono);font-size:9.5px;color:var(--ink2)}
 .pnote{font-size:13px;color:var(--ink2);line-height:1.55;margin:16px 2px 0}
 
+/* ---------- Overview (all on one page) ---------- */
+.ov .hero{padding-bottom:16px}
+.ov .greet{font-size:34px;margin-bottom:10px}
+.ov .hbig{font-size:50px}
+.ovw{padding:16px 16px 14px;margin:0 0 14px;border-radius:28px;background:var(--cream);color:var(--ink)}
+.ovw>.mono{color:var(--ink2);font-size:10.5px;padding:0 2px}
+.ovr{display:block;cursor:pointer;padding:11px 2px 9px;border-bottom:1px solid var(--tbar)}
+.ovt{display:flex;align-items:baseline;gap:9px}
+.ovt i{width:10px;height:10px;border-radius:50%;background:var(--c);flex:none;align-self:center}
+.ovt .n{flex:1;min-width:0;font-weight:500;font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ovt .n span{font-weight:400;font-size:12.5px;color:var(--ink2);margin-left:6px}
+.ovt .t{font-size:25px;font-weight:300;letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ovt .t small{font-size:12px;margin-left:3px;color:var(--ink2);letter-spacing:0}
+.ovt .t sup{font-family:var(--mono);font-size:10px;color:var(--ink2);margin-left:3px}
+.ovtl{position:relative;margin-top:8px}
+.ovsky{height:18px;border-radius:9px}
+.ovaw{position:relative;height:5px;margin-top:3px;border-radius:3px;background:var(--tbar)}
+.ovaw i{position:absolute;top:0;bottom:0;border-radius:3px;background:var(--c)}
+.ovtl b{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:#e8643c;border-radius:2px}
+.ovl{display:flex;justify-content:space-between;margin-top:5px;font-family:var(--mono);font-size:9.5px;color:var(--ink2)}
+.ovr.all{cursor:default;border-bottom:0}
+.ovr.all .n{color:var(--okfg)}
+
 /* ---------- Sheets ---------- */
 #modal{position:fixed;inset:0;z-index:60;display:none;place-items:start center;background:rgba(10,12,24,.55);padding:calc(env(safe-area-inset-top) + 16px) 16px 16px}
 #modal.on{display:grid}
@@ -465,9 +488,33 @@ function render(){
     <div class="herorow"><div class="hbig">${hp.hm}<span class="ap">${hp.ap}</span></div>${sunIcon(c.e)}</div>
     <div class="hsub mono">${esc(place(h))} · ${new Intl.DateTimeFormat('en-GB',{timeZone:h.tz,weekday:'short',day:'numeric',month:'short'}).format(d)}<br>${sunLine(h, st)}</div>
     <button class="mono" data-edit="home" style="margin-top:12px;opacity:.75;text-decoration:underline;text-underline-offset:4px">Change home</button>`);
-  renderBest();
-  setHTML('#list', S.members.map(m => card(m, d)).join('') +
+  const ov = S.view === 'overview' && S.members.length;
+  $('main').classList.toggle('ov', !!ov);
+  if (ov) setHTML('#best', ''); else renderBest();
+  setHTML('#list', (ov ? overview(d) : S.members.map(m => card(m, d)).join('')) +
     `<button class="addrow" data-add>＋ Add ${S.members.length ? 'another person' : 'your first child'}</button>`);
+}
+// everyone on one page: local time plus a 24 h strip (6 h back, 18 h ahead) of sky and awake hours
+function overview(d){
+  const H = 3600e3, w0 = Math.floor(d/H)*H - 6*H, ps = people();
+  const pct = t => ((t - w0)/(24*H)*100).toFixed(2) + '%';
+  const strip = test => { const out = []; let a = null;
+    for (let i=0;i<=96;i++){ const on = i < 96 && test(new Date(w0 + i*H/4 + H/8));
+      if (on && a === null) a = i; if (!on && a !== null) { out.push([a,i]); a = null; } }
+    return out.map(([a,b]) => `<i style="left:${a/96*100}%;width:${(b-a)/96*100}%"></i>`).join(''); };
+  const sky = p => 'linear-gradient(90deg,' + [...Array(49)].map((_,i) => skyColors(p, new Date(w0 + i*H/2)).mid + ' ' + (i/48*100).toFixed(1) + '%').join(',') + ')';
+  const short = (tz, t) => { const x = tparts(tz, t); return (x.ap ? x.hm.replace(':00','') : x.hm) + x.ap; };
+  const nowMark = `<b style="left:${pct(d.getTime())}"></b>`;
+  return `<div class="ovw"><div class="mono">Everyone right now</div>
+    ${ps.map(p => { const tp = tparts(p.tz, d), dm = p.isHome ? '' : dayMark(p.tz, d);
+      return `<div class="ovr" role="button" data-edit="${p.id}" style="--c:${dotColor(p)}">
+      <div class="ovt"><i></i><span class="n">${esc(p.isHome ? 'You' : p.name)}<span>${flag(p.cc)} ${esc(p.city)} · ${weekday(p.tz, d)}</span></span>
+        <span class="t">${tp.hm}<small>${tp.ap}</small>${dm ? `<sup>${dm}</sup>` : ''}</span></div>
+      <div class="ovtl"><div class="ovsky" style="background:${sky(p)}"></div><div class="ovaw">${strip(t => isAwake(p, t))}</div>${nowMark}</div>
+      <div class="ovl">${[0,6,12,18,24].map(h => `<span>${short(p.tz, new Date(w0 + h*H))}</span>`).join('')}</div></div>`; }).join('')}
+    <div class="ovr all" style="--c:var(--ok)"><div class="ovt"><i></i><span class="n">Everyone awake</span></div>
+      <div class="ovtl"><div class="ovaw">${strip(t => ps.every(p => isAwake(p, t)))}</div>${nowMark}</div></div>
+    <div class="pnote" style="margin-top:8px">Sky from 6 hours ago to 18 hours ahead, in their local time. Coloured line: awake. Orange: now.</div></div>`;
 }
 function sunLine(p, st){
   if (st.polar) return st.polar === 'day' ? 'Sun up all day' : 'Sun down all day';
@@ -663,6 +710,7 @@ function openSettings(){
   openSheet(`
     <h2>Settings</h2>
     <div class="field"><label>Clock</label><div class="seg two" id="sFmt"><button data-f="12" class="${S.h12!==false?'on':''}">12 hour · 7:30 pm</button><button data-f="24" class="${S.h12===false?'on':''}">24 hour · 19:30</button></div></div>
+    <div class="field"><label>Home screen</label><div class="seg two" id="sView"><button data-v="cards" class="${S.view!=='overview'?'on':''}">Sky cards</button><button data-v="overview" class="${S.view==='overview'?'on':''}">All on one page</button></div><div class="note">All on one page shows everyone's time and a timeline together, without the big cards.</div></div>
     <div class="field"><label>Appearance</label><div class="seg" id="sTheme"><button data-t="auto" class="${(S.theme||'auto')==='auto'?'on':''}">Auto</button><button data-t="light" class="${S.theme==='light'?'on':''}">☀ Light</button><button data-t="dark" class="${S.theme==='dark'?'on':''}">☾ Dark</button></div><div class="note">Auto follows the phone's own light or dark setting.</div></div>
     <div class="field"><label>Everyone is usually awake</label><div class="two"><select class="inp" id="awF" aria-label="From">${opt(S.awake.from)}</select><select class="inp" id="awT" aria-label="Until">${opt(S.awake.to)}</select></div></div>
     <div class="field"><label>Other devices</label><button class="btn light" id="sShare">Copy link with family data</button><div class="note">Open this link on the phone or the laptop and the family appears there too. Only send it to your own devices.</div></div>
@@ -670,6 +718,7 @@ function openSettings(){
     <button class="btn danger" id="sReset">Start over (delete everything)</button>
     <button class="btn" id="sDone">Done</button>`);
   $('#sFmt').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.h12 = b.dataset.f === '12'; save(); openSettings(); changed(); };
+  $('#sView').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.view = b.dataset.v; save(); openSettings(); changed(); };
   $('#sTheme').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.theme = b.dataset.t; save(); applyTheme(); openSettings(); };
   $('#awF').onchange = e => { S.awake.from = +e.target.value; save(); changed(); };
   $('#awT').onchange = e => { S.awake.to = +e.target.value; save(); changed(); };
