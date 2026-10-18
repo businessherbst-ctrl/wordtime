@@ -19,14 +19,13 @@
   --ink:#141826; --ink2:#5d6275; --cream:#fbf9f4; --cream2:#efece5;
   --ok:#2fbf84; --okbg:rgba(47,191,132,.16);
   --mono:'DM Mono',ui-monospace,monospace; --serif:Fraunces,Georgia,serif; --sans:Outfit,system-ui,sans-serif;
-  --dock:178px;
   --onink:#fff; --card:#fff; --creamT:rgba(251,249,244,0); --tick:rgba(20,24,38,.28);
-  --nobg:#f4ece3; --nofg:#9a6a3c; --okfg:#178a5c; --dangerbg:#fde8ea; --dangerfg:#c23a4f;
+  --nobg:#f4ece3; --nofg:#9a6a3c; --tbar:rgba(20,24,38,.08); --okfg:#178a5c; --dangerbg:#fde8ea; --dangerfg:#c23a4f;
 }
 html[data-theme=dark]{
   --ink:#eef0f7; --ink2:#9aa1bd; --cream:#171c2e; --cream2:#242a40; --onink:#141826; --card:#2c3350;
   --creamT:rgba(23,28,46,0); --tick:rgba(238,240,247,.3); --okbg:rgba(47,191,132,.2);
-  --nobg:rgba(240,162,75,.16); --nofg:#f2b679; --okfg:#5fe3a8; --dangerbg:rgba(255,90,120,.16); --dangerfg:#ff8fa3;
+  --nobg:rgba(240,162,75,.16); --nofg:#f2b679; --tbar:rgba(255,255,255,.08); --okfg:#5fe3a8; --dangerbg:rgba(255,90,120,.16); --dangerfg:#ff8fa3;
 }
 /* dark mode: the skies stay, just dimmed a little */
 html[data-theme=dark] #sky, html[data-theme=dark] .pcard{box-shadow:inset 0 0 0 100vmax rgba(6,8,20,.3)}
@@ -66,7 +65,7 @@ input,select{font:inherit}
 
 /* ---------- Page ---------- */
 #sky{position:fixed;inset:0;z-index:-2}
-.wrap{max-width:520px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 14px) 16px calc(var(--dock) + 40px + env(safe-area-inset-bottom))}
+.wrap{max-width:520px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 14px) 16px calc(40px + env(safe-area-inset-bottom))}
 .topline{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px}
 .topline .mono{opacity:.8}
 .acts{display:flex;gap:8px}
@@ -123,47 +122,45 @@ input,select{font:inherit}
 .addrow{display:block;width:100%;padding:16px;border-radius:24px;border:1.5px dashed rgba(255,255,255,.5);color:#fff;font-weight:500;margin-bottom:14px}
 .foot{text-align:center;opacity:.6;margin:22px 0 0}
 
-/* ---------- Call dial (bottom) ---------- */
-.dock{position:fixed;left:0;right:0;bottom:0;z-index:30;max-width:560px;margin:0 auto;color:var(--ink);background:var(--cream);
-  border-radius:50% 50% 0 0 / 34px 34px 0 0;padding:20px 0 calc(10px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,.18)}
-.dhead{display:flex;justify-content:space-between;align-items:center;padding:0 22px}
-.dhead .mono{color:var(--ink2);font-size:10.5px}
-.dtog{display:flex;align-items:center;gap:8px;padding:6px 0;touch-action:none}
-.dtog svg{width:14px;height:14px;color:var(--ink2);transition:transform .25s}
-.dock.min .dtog svg{transform:rotate(180deg)}
-.dsum{display:none;padding:2px 22px 0;font-size:15px;font-weight:500}
-.dsum .ok{color:var(--okfg)}.dsum .no{color:var(--nofg)}
-.wins{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:10px 22px 0}
-.wins::-webkit-scrollbar{display:none}
-.wins .mono{flex:none;align-self:center;color:var(--ink2);font-size:9.5px;margin-right:2px}
-.wins button{flex:none;padding:6px 11px;border-radius:999px;background:var(--okbg);color:var(--okfg);font-size:12.5px;font-weight:500;white-space:nowrap}
-.wins .none{flex:none;font-size:12.5px;color:var(--nofg)}
-.dock.min{padding-top:14px}
-.dock.min .dtime,.dock.min .ruler,.dock.min .needle,.dock.min .fade,.dock.min .wins,.dock.min #bNow{display:none}
-.dock.min .dsum{display:block}
-body.dockmin{--dock:64px}
-.pill{padding:6px 14px;border-radius:999px;border:1.5px solid var(--ink);font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
-.pill.on{background:var(--ink);color:var(--onink)}
-.dtime{display:flex;align-items:baseline;gap:8px;padding:6px 22px 0}
-.dtime b{font-weight:400;font-size:30px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.dtime .ap{font-size:14px}
-.dstate{margin-left:auto;font-size:12.5px;font-weight:500;padding:4px 10px;border-radius:999px;background:var(--okbg);color:var(--okfg);white-space:nowrap;align-self:center}
-.dstate.no{background:var(--nobg);color:var(--nofg)}
-.ruler{position:relative;margin-top:10px;height:64px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;touch-action:pan-x;cursor:grab}
-.ruler::-webkit-scrollbar{display:none}
-.rin{display:flex;height:100%}
-.rsp{flex:none}
-.track{position:relative;flex:none;height:100%;
-  background:repeating-linear-gradient(90deg,var(--tick) 0 1px,transparent 1px var(--q)) 0 30px/100% 10px no-repeat}
-.track .hr{position:absolute;top:24px;width:1.5px;height:20px;background:var(--ink);opacity:.75}
-.track .hl{position:absolute;top:46px;transform:translateX(-50%);font-family:var(--mono);font-size:10px;color:var(--ink2);white-space:nowrap}
-.track .day{position:absolute;top:2px;transform:translateX(4px);font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);font-weight:500}
-.track .ok{position:absolute;top:16px;height:6px;border-radius:6px;background:var(--ok)}
-.needle{position:absolute;left:50%;bottom:calc(10px + env(safe-area-inset-bottom));height:52px;width:2px;margin-left:-1px;background:#e8643c;border-radius:2px;pointer-events:none}
-.needle::before{content:'';position:absolute;top:-5px;left:-4px;width:10px;height:10px;border-radius:50%;background:#e8643c}
-.fade{position:absolute;bottom:0;height:80px;width:40px;pointer-events:none}
-.fade.l{left:0;background:linear-gradient(90deg,var(--cream),var(--creamT))}
-.fade.r{right:0;background:linear-gradient(-90deg,var(--cream),var(--creamT))}
+/* ---------- When to call ---------- */
+.ibtn{position:relative}
+.ibtn .bd{position:absolute;top:5px;right:5px;width:10px;height:10px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 2px rgba(255,255,255,.7);display:none}
+.ibtn.live .bd{display:block}
+#plan{position:fixed;inset:0;z-index:55;background:var(--cream);color:var(--ink);overflow-y:auto;display:none;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#plan.on{display:block;animation:slideup .28s ease}
+@keyframes slideup{from{transform:translateY(24px);opacity:0}}
+.pin{max-width:560px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 16px) 18px calc(30px + env(safe-area-inset-bottom))}
+.phead{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.phead h2{font-family:var(--serif);font-weight:400;font-size:34px;margin:0}
+.pdone{padding:11px 20px;border-radius:999px;background:var(--ink);color:var(--onink);font-weight:500;font-size:15px}
+.psub{color:var(--ink2);margin:10px 0 18px;line-height:1.8;font-size:10.5px}
+.psub button{text-decoration:underline;text-underline-offset:3px;letter-spacing:inherit;text-transform:inherit;color:var(--ink)}
+.phero{padding:18px;border-radius:24px;background:var(--okbg)}
+.phero.no{background:var(--nobg)}
+.phero>.mono{color:var(--okfg);font-size:10.5px}
+.phero.no>.mono{color:var(--nofg)}
+.phero .big{font-size:28px;font-weight:500;margin:6px 0 2px;line-height:1.15}
+.phero .sm{color:var(--ink2);font-size:14px}
+.who-list{display:flex;flex-direction:column;gap:9px;margin-top:16px}
+.wrow{display:flex;align-items:center;gap:10px;font-size:14.5px}
+.wrow i{width:10px;height:10px;border-radius:50%;background:var(--c);flex:none}
+.wrow .n{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wrow .t{font-variant-numeric:tabular-nums;color:var(--ink2);white-space:nowrap;font-size:13.5px}
+.wrow .z{font-size:12px;padding:2px 8px;border-radius:999px;background:var(--nobg);color:var(--nofg)}
+.psec{margin:28px 2px 10px;color:var(--ink2);font-size:10.5px}
+.wlist{display:flex;flex-direction:column;gap:8px}
+.witem{padding:15px 16px;border-radius:18px;background:var(--cream2)}
+.witem .top{font-weight:500;font-size:16.5px}
+.witem .who-list{margin-top:10px;gap:7px}
+.tl{padding:16px;border-radius:20px;background:var(--cream2);margin-bottom:10px}
+.tl .day{font-weight:500;margin-bottom:12px}
+.tlr{display:flex;align-items:center;gap:10px;margin:8px 0}
+.tlr .n{width:62px;flex:none;font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tbar{position:relative;flex:1;height:14px;border-radius:7px;background:var(--tbar)}
+.tbar i{position:absolute;top:0;bottom:0;border-radius:7px;background:var(--c)}
+.tbar b{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;background:#e8643c;border-radius:2px}
+.tlh{display:flex;justify-content:space-between;margin:6px 0 0 72px;font-family:var(--mono);font-size:9.5px;color:var(--ink2)}
+.pnote{font-size:13px;color:var(--ink2);line-height:1.55;margin:16px 2px 0}
 
 /* ---------- Sheets ---------- */
 #modal{position:fixed;inset:0;z-index:60;display:none;place-items:start center;background:rgba(10,12,24,.55);padding:calc(env(safe-area-inset-top) + 16px) 16px 16px}
@@ -204,7 +201,7 @@ select.inp{appearance:none}
 .gviews{flex:1;display:flex;padding:4px;border-radius:999px;background:rgba(255,255,255,.1)}
 .gviews button{flex:1;padding:9px 0;border-radius:999px;font-size:13.5px;color:rgba(255,255,255,.65)}
 .gviews button.on{background:rgba(255,255,255,.18);color:#fff}
-.gdone{padding:10px 16px;border-radius:999px;background:#fff;color:var(--ink);font-weight:500;font-size:14px}
+.gdone{padding:11px 20px;border-radius:999px;background:#fff;color:#141826;font-weight:600;font-size:15px;box-shadow:0 2px 12px rgba(0,0,0,.4)}
 .gload{position:absolute;inset:0;display:grid;place-items:center;color:rgba(255,255,255,.6)}
 .mk{display:flex;align-items:center;gap:6px;transform:translate(-50%,-50%);pointer-events:auto;cursor:pointer;transition:opacity .3s;white-space:nowrap}
 .mk .av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:14px;color:#141826;background:var(--c);box-shadow:0 0 0 3px rgba(255,255,255,.2),0 0 18px var(--c)}
@@ -239,6 +236,7 @@ select.inp{appearance:none}
   <div class="topline">
     <span class="mono">WorldTime</span>
     <div class="acts">
+      <button class="ibtn" id="bCall" aria-label="When to call"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg><span class="bd"></span></button>
       <button class="ibtn" id="bGlobe" aria-label="Globe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg></button>
       <button class="ibtn" id="bAdd" aria-label="Add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg></button>
       <button class="ibtn" id="bSet" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
@@ -250,14 +248,12 @@ select.inp{appearance:none}
   <div class="foot mono">Made with love · Miki &amp; Lennox</div>
 </main>
 
-<div class="dock" id="dock">
-  <div class="dhead"><button class="dtog" id="dTog" aria-label="Show or hide the call planner"><span class="mono">Plan a call · your time</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg></button><button class="pill on" id="bNow">Now</button></div>
-  <div class="dsum" id="dSum"></div>
-  <div class="dtime"><b id="dT">--:--</b><span class="ap" id="dAp"></span><span class="mono" id="dDay" style="color:var(--ink2);font-size:10.5px"></span><span class="dstate" id="dState"></span></div>
-  <div class="wins" id="dWins"></div>
-  <div class="ruler" id="ruler"><div class="rin"><div class="rsp" id="rsp1"></div><div class="track" id="track"></div><div class="rsp" id="rsp2"></div></div></div>
-  <div class="needle"></div>
-  <div class="fade l"></div><div class="fade r"></div>
+<div id="plan" role="dialog" aria-label="When to call">
+  <div class="pin">
+    <div class="phead"><h2>When to call</h2><button class="pdone" id="pDone">Done</button></div>
+    <div class="mono psub" id="pSub"></div>
+    <div id="pBody"></div>
+  </div>
 </div>
 
 <div id="gview">
@@ -424,8 +420,7 @@ function awayText(m, d){
 
 /* ================= Call windows ================= */
 const STEP = 15*60e3, SPAN = 48;
-let T0 = Math.floor(Date.now()/STEP)*STEP;   // left end of the dial
-let T = null;                                 // chosen moment on the dial; null = now
+let T0 = Math.floor(Date.now()/STEP)*STEP;   // start of the 48 h look-ahead
 function callWindows(){
   const ps = people(), out = []; let cur = null, best = {n:-1};
   for (let i=0;i<SPAN*4;i++){
@@ -445,7 +440,7 @@ function whenLabel(d){
 
 /* ================= Render ================= */
 const $ = s => document.querySelector(s);
-const now = () => T || new Date();
+const now = () => new Date();
 // only touch the DOM when the markup really changed: keeps taps from landing on replaced elements
 function setHTML(sel, html){ const el = $(sel); if (el._h !== html) { el.innerHTML = html; el._h = html; } }
 function render(){
@@ -509,102 +504,75 @@ function renderBest(){
       <div class="mono">${nowIn ? 'Everyone is awake' : 'Next time everyone is awake'}</div>
       <div class="bt">${nowIn ? 'Right now' : whenLabel(w.s) + ', ' + hhmm(tz, w.s)}</div>
       <div class="bs">until ${hhmm(tz, w.e)} your time</div></div>
-      ${nowIn ? '' : `<button class="go" data-goto="${w.s.getTime()}">Show</button>`}</div>`);
+      <button class="go" data-plan>${nowIn ? 'Call' : 'Details'}</button></div>`);
   } else {
     setHTML('#best', `<div class="best no"><span class="dot"></span><div class="bl">
       <div class="mono">No time when all are awake</div>
       <div class="bt">${whenLabel(best.t)}, ${hhmm(tz, best.t)}</div>
       <div class="bs">best option: ${best.n} of ${people().length} awake</div></div>
-      <button class="go" data-goto="${best.t.getTime()}">Show</button></div>`);
+      <button class="go" data-plan>Details</button></div>`);
   }
 }
 
-/* ================= Dial ================= */
-const PXH = 72;
-const ruler = $('#ruler'), track = $('#track');
-function buildDial(){
-  T0 = Math.floor(Date.now()/STEP)*STEP; W8 = null;
-  const half = ruler.clientWidth/2, tz = homeTz();
-  $('#rsp1').style.width = $('#rsp2').style.width = half + 'px';
-  track.style.width = SPAN*PXH + 'px';
-  track.style.setProperty('--q', PXH/4 + 'px');
-  let html = '';
-  // hour marks on the home clock (whole hours of home time, also for :30/:45 time zones)
-  const off = offsetMin(tz, new Date(T0))*60e3;
-  for (let t = Math.ceil((T0 + off)/3600e3)*3600e3 - off; t <= T0 + SPAN*3600e3; t += 3600e3){
-    const x = (t - T0)/3600e3*PXH, h = Math.round(localHour(tz, new Date(t))) % 24;
-    html += `<span class="hr" style="left:${x}px"></span><span class="hl" style="left:${x}px">${S.h12===false ? String(h).padStart(2,'0') : (h%12||12) + (h<12?'a':'p')}</span>`;
-    if (h === 0) html += `<span class="day" style="left:${x}px">${weekday(tz, new Date(t + 60e3))}</span>`;
-  }
-  if (S.home && S.members.length) for (const w of callWindows().wins){
-    const a = (w.s - T0)/3600e3*PXH, b = (w.e - T0)/3600e3*PXH;
-    html += `<span class="ok" style="left:${a}px;width:${b-a}px"></span>`;
-  }
-  track.innerHTML = html;
-  if (T) ruler.scrollLeft = (T - T0)/3600e3*PXH;
-  updateDial();
-}
-function updateDial(){
-  const d = now(), tp = tparts(homeTz(), d);
-  $('#dT').textContent = tp.hm; $('#dAp').textContent = tp.ap;
-  $('#dDay').textContent = T ? whenLabel(d) : 'Now';
-  $('#bNow').classList.toggle('on', !T);
-  const ps = people();
-  if (!S.home || !S.members.length) { $('#dState').textContent = 'Add family first'; $('#dState').className = 'dstate no'; setHTML('#dSum', '<span class="no">Add your family to plan calls</span>'); setHTML('#dWins', ''); return; }
-  const n = ps.filter(p => isAwake(p, d)).length;
-  renderWins();
-  $('#dState').textContent = n === ps.length ? '✓ Everyone awake' : `${n} of ${ps.length} awake`;
-  $('#dState').className = 'dstate' + (n === ps.length ? '' : ' no');
-}
-let raf = 0;
-ruler.addEventListener('scroll', () => {
-  if (raf) return;
-  raf = requestAnimationFrame(() => {
-    raf = 0;
-    const x = ruler.scrollLeft;
-    T = x < 3 ? null : new Date(Math.round((T0 + x/PXH*3600e3)/(5*60e3))*5*60e3);
-    updateDial(); render();
-  });
-}, {passive:true});
-// mouse drag and wheel for the laptop (touch scrolls natively)
-(() => { let x0 = null, s0 = 0;
-  ruler.addEventListener('mousedown', e => { x0 = e.clientX; s0 = ruler.scrollLeft; e.preventDefault(); });
-  addEventListener('mousemove', e => { if (x0 !== null) ruler.scrollLeft = s0 - (e.clientX - x0); });
-  addEventListener('mouseup', () => x0 = null);
-  ruler.addEventListener('wheel', e => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) { ruler.scrollLeft += e.deltaY; e.preventDefault(); } }, {passive:false});
-})();
+/* ================= When to call ================= */
 // "7:00 – 10:00 pm" (am/pm written once when both ends share it)
-function rangeText(s, e){
-  const tz = homeTz(), a = tparts(tz, s), b = tparts(tz, e);
+function rangeText(tz, s, e){
+  const a = tparts(tz, s), b = tparts(tz, e);
   return a.ap === b.ap ? `${a.hm} – ${b.hm}${b.ap ? ' ' + b.ap : ''}` : `${a.hm} ${a.ap} – ${b.hm} ${b.ap}`;
 }
-function renderWins(){
-  const wins = (W8 || (W8 = callWindows())).wins.filter(w => w.e > Date.now()), w = wins[0];
-  setHTML('#dWins', wins.length
-    ? '<span class="mono">Everyone awake</span>' + wins.slice(0,4).map(x => `<button data-goto="${Math.max(x.s.getTime(), T0)}">${whenLabel(x.s < Date.now() ? new Date() : x.s)} ${rangeText(x.s < Date.now() ? new Date() : x.s, x.e)}</button>`).join('')
-    : '<span class="none">No time in the next 2 days when everyone is awake</span>');
-  setHTML('#dSum', !w ? '<span class="no">No shared awake time in the next 2 days</span>'
-    : w.s <= Date.now() ? `<span class="ok">✓ Everyone is awake now</span> · until ${hhmm(homeTz(), w.e)}`
-    : `<span class="ok">All awake:</span> ${whenLabel(w.s)} ${rangeText(w.s, w.e)}`);
+// start of the home calendar day k days from today (exact also on DST switch days)
+function dayStart(tz, k){
+  const n = Math.floor(Date.now()/60e3)*60e3 + k*864e5, h = localHour(tz, new Date(n));
+  const m = n - h*3600e3;
+  return m + (offsetMin(tz, new Date(n)) - offsetMin(tz, new Date(m)))*60e3;
 }
-// collapse / expand the planner: tap the title or swipe the dock down / up
-function setDock(min){
-  $('#dock').classList.toggle('min', min); document.body.classList.toggle('dockmin', min);
-  try { localStorage.setItem('wordtime.dock', min ? 'min' : 'open'); } catch(e) {}
-  if (min && T) { T = null; ruler.scrollLeft = 0; updateDial(); render(); }
-  if (!min) buildDial();
+const dotColor = p => p.isHome ? '#f0b44c' : colorOf(p);
+const whoName = p => esc(p.isHome ? 'You' : p.name) + (p.role ? ` <span style="opacity:.6">· ${esc(p.role)}</span>` : '');
+function whoRanges(s, e){
+  return `<div class="who-list">${people().map(p => `<div class="wrow" style="--c:${dotColor(p)}"><i></i><span class="n">${whoName(p)}</span><span class="t">${weekday(p.tz, s)} ${rangeText(p.tz, s, e)}</span></div>`).join('')}</div>`;
 }
-$('#dTog').onclick = () => setDock(!$('#dock').classList.contains('min'));
-$('#dSum').onclick = () => setDock(false);
-(() => { let y0 = null;
-  const head = e => e.target.closest('.dhead,.dsum,.dtime');
-  $('#dock').addEventListener('touchstart', e => { y0 = head(e) ? e.touches[0].clientY : null; }, {passive:true});
-  $('#dock').addEventListener('touchend', e => { if (y0 === null) return; const dy = e.changedTouches[0].clientY - y0; y0 = null;
-    if (dy > 30) setDock(true); else if (dy < -30) setDock(false); });
-})();
-try { if (localStorage.getItem('wordtime.dock') === 'min') { $('#dock').classList.add('min'); document.body.classList.add('dockmin'); } } catch(e) {}
-function goTo(ms){ ruler.scrollTo({left: Math.max(0, (ms - T0)/3600e3*PXH), behavior:'smooth'}); }
-$('#bNow').onclick = () => goTo(T0);
+function whoAt(t){
+  return `<div class="who-list">${people().map(p => `<div class="wrow" style="--c:${dotColor(p)}"><i></i><span class="n">${whoName(p)}</span><span class="t">${weekday(p.tz, t)} ${hhmm(p.tz, t)}</span>${isAwake(p, t) ? '' : '<span class="z">asleep</span>'}</div>`).join('')}</div>`;
+}
+function timeline(k){
+  const tz = homeTz(), t0 = dayStart(tz, k), ps = people(), Q = 96;
+  const segs = test => { const out = []; let a = null;
+    for (let i=0;i<=Q;i++){ const on = i < Q && test(new Date(t0 + i*15*60e3 + 7.5*60e3));
+      if (on && a === null) a = i; if (!on && a !== null) { out.push([a,i]); a = null; } }
+    return out.map(([a,b]) => `<i style="left:${a/Q*100}%;width:${(b-a)/Q*100}%"></i>`).join(''); };
+  const nowMark = k === 0 ? `<b style="left:${(Date.now()-t0)/864e5*100}%"></b>` : '';
+  const d = new Date(t0 + 12*3600e3);
+  const title = (k === 0 ? 'Today' : 'Tomorrow') + ' · ' + new Intl.DateTimeFormat('en-GB',{timeZone:tz,weekday:'short',day:'numeric',month:'short'}).format(d);
+  const lab = S.h12 === false ? ['00','06','12','18','24'] : ['12am','6am','12pm','6pm','12am'];
+  return `<div class="tl"><div class="day">${title}</div>
+    ${ps.map(p => `<div class="tlr" style="--c:${dotColor(p)}"><span class="n">${esc(p.isHome ? 'You' : p.name)}</span><div class="tbar">${segs(t => isAwake(p, t))}${nowMark}</div></div>`).join('')}
+    <div class="tlr" style="--c:var(--ok)"><span class="n" style="color:var(--okfg);font-weight:500">All</span><div class="tbar">${segs(t => ps.every(p => isAwake(p, t)))}${nowMark}</div></div>
+    <div class="tlh">${lab.map(x => `<span>${x}</span>`).join('')}</div></div>`;
+}
+function renderPlan(){
+  if (!$('#plan').classList.contains('on')) return;
+  if (!S.home || !S.members.length) {
+    setHTML('#pSub', '');
+    setHTML('#pBody', `<div class="phero no"><div class="mono">Nothing to plan yet</div><div class="sm" style="margin-top:6px">Add your home and at least one person first, then this page shows the best times to call.</div></div>`);
+    return;
+  }
+  const tz = homeTz(), t = Date.now(), {wins, best} = W8 || (W8 = callWindows());
+  const up = wins.filter(w => w.e > t), first = up[0];
+  setHTML('#pSub', `All times in your time zone · ${esc(S.home.city)}<br>Awake means ${hourLabel(S.awake.from)} – ${hourLabel(S.awake.to)} local time · <button data-settings>change</button>`);
+  let hero;
+  if (first && first.s <= t) hero = `<div class="phero"><div class="mono">Everyone is awake right now</div><div class="big">Good time to call 📞</div><div class="sm">until ${hhmm(tz, first.e)} your time</div>${whoRanges(new Date(t), first.e)}</div>`;
+  else if (first) hero = `<div class="phero"><div class="mono">Next time everyone is awake</div><div class="big">${whenLabel(first.s)} ${rangeText(tz, first.s, first.e)}</div><div class="sm">your time</div>${whoRanges(first.s, first.e)}</div>`;
+  else hero = `<div class="phero no"><div class="mono">No time in the next 2 days when everyone is awake</div><div class="big">Best option: ${whenLabel(best.t)} ${hhmm(tz, best.t)}</div><div class="sm">${best.n} of ${people().length} awake then</div>${whoAt(best.t)}</div>`;
+  const later = up.slice(1);
+  setHTML('#pBody', hero +
+    (later.length ? `<div class="mono psec">More good times</div><div class="wlist">${later.map(w => `<div class="witem"><div class="top">${whenLabel(w.s)} ${rangeText(tz, w.s, w.e)}</div>${whoRanges(w.s, w.e)}</div>`).join('')}</div>` : '') +
+    `<div class="mono psec">Who is awake when</div>${timeline(0)}${timeline(1)}
+     <div class="pnote">Coloured bars show when each person is awake, in your time. Green means everyone is awake at once. The orange line is now.</div>`);
+}
+function openPlan(){ $('#plan').classList.add('on'); $('#plan').scrollTop = 0; renderPlan(); }
+function closePlan(){ $('#plan').classList.remove('on'); }
+$('#pDone').onclick = closePlan;
+$('#bCall').onclick = openPlan;
 
 /* ================= Edit sheet ================= */
 let searchT, picked = null;
@@ -860,11 +828,12 @@ const Atlas = (() => {
 })();
 
 /* ================= Wiring ================= */
-function changed(){ W8 = null; applyTheme(); render(); buildDial(); refreshGlobe(); }
+function changed(){ W8 = null; applyTheme(); tick(); refreshGlobe(); }
 document.addEventListener('click', e => {
   const ed = e.target.closest('[data-edit]'); if (ed) return openEdit(ed.dataset.edit);
   if (e.target.closest('[data-add]')) return openEdit('new');
-  const go = e.target.closest('[data-goto]'); if (go) { if ($('#dock').classList.contains('min')) setDock(false); return goTo(+go.dataset.goto); }
+  if (e.target.closest('[data-plan]')) return openPlan();
+  if (e.target.closest('[data-settings]')) return openSettings();
 });
 $('#bAdd').onclick = () => openEdit(S.home ? 'new' : 'home');
 $('#bSet').onclick = openSettings;
@@ -875,16 +844,19 @@ addEventListener('resize', () => {
   resizeT = setTimeout(() => {
     // the phone keyboard opening only changes the height: nothing to re-layout
     if (/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName) && innerWidth === lastW) return;
-    lastW = innerWidth; buildDial(); gResize();
+    lastW = innerWidth; gResize();
   }, 200);
 });
-// keep clocks live; move the dial's left end along every 15 minutes
-setInterval(() => {
-  if (Math.floor(Date.now()/STEP)*STEP !== T0) { buildDial(); if (!T) ruler.scrollLeft = 0; }
-  if (!T) { updateDial(); render(); }
-}, 15e3);
-// back from the background: jump to now
-document.addEventListener('visibilitychange', () => { if (!document.hidden) { T = null; ruler.scrollLeft = 0; changed(); } });
+// keep clocks live; move the 48 h look-ahead along every 15 minutes
+function tick(){
+  const t0 = Math.floor(Date.now()/STEP)*STEP;
+  if (t0 !== T0) { T0 = t0; W8 = null; }
+  render(); renderPlan();
+  const ps = people();
+  $('#bCall').classList.toggle('live', !!(S.home && S.members.length && ps.every(p => isAwake(p, new Date()))));
+}
+setInterval(tick, 15e3);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });
 
 /* ================= Theme ================= */
 const darkMQ = matchMedia('(prefers-color-scheme: dark)');
@@ -899,7 +871,7 @@ applyTheme();
 (function boot(){
   const bar = $('#loadbar'), t0 = Date.now();
   bar.style.width = '35%';
-  render(); buildDial();
+  tick();
   setTimeout(() => bar.style.width = '75%', 700);
   setTimeout(() => bar.style.width = '100%', 2200);
   setTimeout(() => { $('#intro').classList.add('gone'); if (!S.home) setTimeout(() => openEdit('home'), 700); }, Math.max(0, 3400 - (Date.now() - t0)));
