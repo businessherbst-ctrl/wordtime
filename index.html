@@ -301,15 +301,6 @@ const ROLES = ['Daughter','Son','Grandchild','Parents','Sibling','Friend'];
 const EMPTY = {home:null, members:[], awake:{from:8, to:22}, h12:true};
 let S = load();
 function load(){
-  // a share link (#d=...) carries the whole family to another device
-  if (location.hash.startsWith('#d=')) {
-    try {
-      const d = JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(3)))));
-      history.replaceState(null,'',location.pathname);
-      localStorage.setItem(KEY, JSON.stringify(d));
-      return d;
-    } catch(e) {}
-  }
   // old builds stored example entries (demo:true); those are dropped
   try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && d.members && !d.demo) return d; } catch(e) {}
   return structuredClone(EMPTY);
@@ -713,7 +704,6 @@ function openSettings(){
     <div class="field"><label>Home screen</label><div class="seg two" id="sView"><button data-v="cards" class="${S.view!=='overview'?'on':''}">Sky cards</button><button data-v="overview" class="${S.view==='overview'?'on':''}">All on one page</button></div><div class="note">All on one page shows everyone's time and a timeline together, without the big cards.</div></div>
     <div class="field"><label>Appearance</label><div class="seg" id="sTheme"><button data-t="auto" class="${(S.theme||'auto')==='auto'?'on':''}">Auto</button><button data-t="light" class="${S.theme==='light'?'on':''}">☀ Light</button><button data-t="dark" class="${S.theme==='dark'?'on':''}">☾ Dark</button></div><div class="note">Auto follows the phone's own light or dark setting.</div></div>
     <div class="field"><label>Everyone is usually awake</label><div class="two"><select class="inp" id="awF" aria-label="From">${opt(S.awake.from)}</select><select class="inp" id="awT" aria-label="Until">${opt(S.awake.to)}</select></div></div>
-    <div class="field"><label>Other devices</label><button class="btn light" id="sShare">Copy link with family data</button><div class="note">Open this link on the phone or the laptop and the family appears there too. Only send it to your own devices.</div></div>
     <button class="btn light" id="sIntro">Show the intro again</button>
     <button class="btn danger" id="sReset">Start over (delete everything)</button>
     <button class="btn" id="sDone">Done</button>`);
@@ -722,11 +712,6 @@ function openSettings(){
   $('#sTheme').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.theme = b.dataset.t; save(); applyTheme(); openSettings(); };
   $('#awF').onchange = e => { S.awake.from = +e.target.value; save(); changed(); };
   $('#awT').onchange = e => { S.awake.to = +e.target.value; save(); changed(); };
-  $('#sShare').onclick = async () => {
-    const url = location.href.split('#')[0] + '#d=' + btoa(unescape(encodeURIComponent(JSON.stringify(S))));
-    try { if (navigator.share) await navigator.share({title:'WorldTime', url}); else { await navigator.clipboard.writeText(url); toast('Link copied'); } }
-    catch(e) { if (e && e.name === 'AbortError') return; prompt('Copy this link:', url); }
-  };
   $('#sIntro').onclick = () => { closeSheet(); const i = $('#intro'); i.classList.remove('gone'); setTimeout(()=>i.classList.add('gone'), 3500); };
   $('#sReset').onclick = () => { if (!confirm('Delete all entries on this device?')) return; S = structuredClone(EMPTY); save(); closeSheet(); changed(); };
   $('#sDone').onclick = closeSheet;
