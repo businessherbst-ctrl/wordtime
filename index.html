@@ -156,10 +156,12 @@ select.inp{appearance:none}
 .sheet{width:100%;max-width:420px;max-height:92vh;overflow:auto;padding:22px;border-radius:28px;background:#0e1326;border:1px solid var(--line);display:flex;flex-direction:column;gap:14px;box-shadow:0 30px 90px rgba(0,0,0,.6);animation:pop .25s ease}
 @keyframes pop{from{transform:translateY(16px) scale(.98);opacity:0}}
 .sheet h2{margin:0;font-size:22px;font-weight:600}
-.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:4px;border-radius:14px;background:rgba(0,0,0,.28);border:1px solid var(--line)}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:4px;border-radius:14px;background:rgba(0,0,0,.28);border:1px solid var(--line)}
 .seg button{padding:10px;border-radius:10px;color:var(--mute)}
 .seg button.on[data-g=f]{background:rgba(255,126,182,.2);color:var(--female)}
 .seg button.on[data-g=m]{background:rgba(111,182,255,.2);color:var(--male)}
+.seg button.on[data-g=g]{background:rgba(184,156,255,.2);color:var(--accent2)}
+.seg button{padding:10px 4px;white-space:nowrap}
 .rolechips{display:flex;flex-wrap:wrap;gap:6px}
 .rolechips button{padding:7px 12px;border-radius:999px;background:var(--glass2);border:1px solid var(--line);font-size:13px;color:var(--mute)}
 .rolechips button.on{background:rgba(124,196,255,.18);border-color:rgba(124,196,255,.4);color:var(--text)}
@@ -256,6 +258,8 @@ select.inp{appearance:none}
 const KEY = 'wordtime.v1';
 const PALETTE_F = ['#ff7eb6','#ff9f7e','#e58bff','#ffb3d1'];
 const PALETTE_M = ['#6fb6ff','#5ef0d0','#8f9bff','#7fe0ff'];
+const PALETTE_G = ['#b89cff','#9be38f','#ffb86b','#c7a6ff'];
+const GSYM = {f:'♀', m:'♂', g:'⚭'};
 const EMPTY = {home:null, members:[], awake:{from:8, to:22}, h12:true};
 let S = load();
 function load(){
@@ -316,7 +320,7 @@ function km(a,b){
 const flag = cc => cc ? cc.toUpperCase().replace(/./g, c => String.fromCodePoint(127397 + c.charCodeAt())) : '';
 const fmtKm = n => n.toLocaleString('en-US') + ' km';
 function colorOf(m){
-  const pal = m.gender==='m' ? PALETTE_M : PALETTE_F;
+  const pal = m.gender==='m' ? PALETTE_M : m.gender==='g' ? PALETTE_G : PALETTE_F;
   const idx = S.members.filter(x=>x.gender===m.gender).indexOf(m);
   return pal[Math.max(0,idx) % pal.length];
 }
@@ -572,7 +576,7 @@ function renderFamily(){
     ${h ? `<h3>Family</h3>` : ''}
     ${ms.map(m => `
       <div class="card" data-fly="${m.id}" style="--c:${colorOf(m)}">
-        <div class="av">${initial(m.name)}<small>${m.gender==='m'?'♂':'♀'}</small></div>
+        <div class="av">${initial(m.name)}<small>${GSYM[m.gender] || '♀'}</small></div>
         <div class="mid">
           <div class="nm">${esc(m.name)}${m.role ? `<span class="role">${esc(m.role)}</span>` : ''}<span class="ed" data-edit="${m.id}" title="Edit">✎</span></div>
           <div class="ct">${flag(m.cc)} ${esc(m.city)}, ${esc(m.country)}</div>
@@ -609,7 +613,7 @@ function renderCall(){
       <div class="sub">best compromise: ${best.n} of ${ps.length} awake</div>${chipsAt(best.t)}</div>`;
   }
   // 24h timeline from home midnight
-  const now = new Date(), hNow = localHour(tz, now), mid = now.getTime() - hNow*3600e3;
+  const now = new Date(), hNow = localHour(tz, now), mid0 = now.getTime() - hNow*3600e3, mid = mid0 + (offsetMin(tz, now) - offsetMin(tz, new Date(mid0)))*60e3; // exact midnight even on DST switch days
   const slots = [...Array(48)].map((_,i) => new Date(mid + i*1800e3 + 900e3));
   const rows = ps.map(p => {
     const c = p.isHome ? '#ffd36b' : colorOf(p);
@@ -662,7 +666,7 @@ function openEdit(id){
     <h2>${isHome ? 'Where do you live?' : isNew ? 'Add a person' : 'Edit ' + esc(m.name)}</h2>
     <div class="field"><label>${isHome ? 'Name' : 'Name'}</label><input class="inp" id="fName" value="${esc(m.name||'')}" placeholder="${isHome?'Your names':'Name'}"></div>
     ${isHome ? '' : `<div class="field"><label>Role (optional)</label><input class="inp" id="fRole" value="${esc(m.role||'')}" placeholder="e.g. Daughter, Parents, Friend…" autocomplete="off"><div class="rolechips" id="fRoles">${ROLES.map(r=>`<button data-r="${r}">${r}</button>`).join('')}</div></div>
-    <div class="seg" id="fG"><button data-g="f" class="${g==='f'?'on':''}">♀ Female</button><button data-g="m" class="${g==='m'?'on':''}">♂ Male</button></div>`}
+    <div class="seg" id="fG"><button data-g="f" class="${g==='f'?'on':''}">♀ Female</button><button data-g="m" class="${g==='m'?'on':''}">♂ Male</button><button data-g="g" class="${g==='g'?'on':''}">⚭ Couple</button></div>`}
     <div class="field"><label>City</label><input class="inp" id="fCity" placeholder="Type a city…" autocomplete="off"></div>
     <div class="results" id="fRes"></div>
     <div id="fPicked">${picked && picked.city ? pickedHTML(picked) : ''}</div>
@@ -674,7 +678,8 @@ function openEdit(id){
   $('#modal').classList.add('on');
   if (isNew) setTimeout(()=>$('#fName').focus(), 50);
   const syncRoles = () => document.querySelectorAll('#fRoles button').forEach(b => b.classList.toggle('on', b.dataset.r.toLowerCase() === $('#fRole').value.trim().toLowerCase()));
-  if ($('#fRoles')) { syncRoles(); $('#fRole').oninput = syncRoles; $('#fRoles').onclick = e => { const b = e.target.closest('button'); if (!b) return; $('#fRole').value = b.classList.contains('on') ? '' : b.dataset.r; syncRoles(); }; }
+  if ($('#fRoles')) { syncRoles(); $('#fRole').oninput = syncRoles; $('#fRoles').onclick = e => { const b = e.target.closest('button'); if (!b) return; $('#fRole').value = b.classList.contains('on') ? '' : b.dataset.r; syncRoles();
+    if ($('#fRole').value === 'Parents' && $('#fG')) $('#fG [data-g=g]').click(); }; }
   if ($('#fG')) $('#fG').onclick = e => { const b = e.target.closest('button'); if (!b) return; g = b.dataset.g; [...$('#fG').children].forEach(x=>x.classList.toggle('on', x===b)); };
   $('#fCity').oninput = e => { clearTimeout(searchT); const q = e.target.value.trim(); if (q.length < 2) { $('#fRes').innerHTML=''; return; } searchT = setTimeout(()=>geo(q), 280); };
   $('#fCancel').onclick = closeEdit;
