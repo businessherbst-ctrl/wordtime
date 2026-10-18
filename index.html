@@ -20,7 +20,16 @@
   --ok:#2fbf84; --okbg:rgba(47,191,132,.16);
   --mono:'DM Mono',ui-monospace,monospace; --serif:Fraunces,Georgia,serif; --sans:Outfit,system-ui,sans-serif;
   --dock:178px;
+  --onink:#fff; --card:#fff; --creamT:rgba(251,249,244,0); --tick:rgba(20,24,38,.28);
+  --nobg:#f4ece3; --nofg:#9a6a3c; --okfg:#178a5c; --dangerbg:#fde8ea; --dangerfg:#c23a4f;
 }
+html[data-theme=dark]{
+  --ink:#eef0f7; --ink2:#9aa1bd; --cream:#171c2e; --cream2:#242a40; --onink:#141826; --card:#2c3350;
+  --creamT:rgba(23,28,46,0); --tick:rgba(238,240,247,.3); --okbg:rgba(47,191,132,.2);
+  --nobg:rgba(240,162,75,.16); --nofg:#f2b679; --okfg:#5fe3a8; --dangerbg:rgba(255,90,120,.16); --dangerfg:#ff8fa3;
+}
+/* dark mode: the skies stay, just dimmed a little */
+html[data-theme=dark] #sky, html[data-theme=dark] .pcard{box-shadow:inset 0 0 0 100vmax rgba(6,8,20,.3)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{background:#1b2342}
 body{margin:0;min-height:100dvh;font-family:var(--sans);color:#fff;overflow-x:hidden}
@@ -79,7 +88,7 @@ input,select{font:inherit}
 .best .bl .mono{color:var(--ink2);font-size:10.5px}
 .best .bt{font-size:21px;font-weight:500;margin-top:4px}
 .best .bs{font-size:13px;color:var(--ink2);margin-top:2px}
-.best .go{flex:none;padding:10px 16px;border-radius:999px;background:var(--ink);color:#fff;font-size:13px;font-weight:500}
+.best .go{flex:none;padding:10px 16px;border-radius:999px;background:var(--ink);color:var(--onink);font-size:13px;font-weight:500}
 .best .dot{flex:none;width:12px;height:12px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 5px var(--okbg)}
 .best.no .dot{background:#f0a24b;box-shadow:0 0 0 5px rgba(240,162,75,.18)}
 
@@ -108,9 +117,9 @@ input,select{font:inherit}
 .empty{padding:22px;border-radius:28px;background:var(--cream);color:var(--ink)}
 .empty h2{font-family:var(--serif);font-weight:400;font-size:28px;margin:6px 0 8px}
 .empty p{margin:0 0 16px;color:var(--ink2);line-height:1.5}
-.btn{display:block;width:100%;padding:15px 18px;border-radius:18px;background:var(--ink);color:#fff;font-weight:500;font-size:16px;text-align:center}
+.btn{display:block;width:100%;padding:15px 18px;border-radius:18px;background:var(--ink);color:var(--onink);font-weight:500;font-size:16px;text-align:center}
 .btn.light{background:var(--cream2);color:var(--ink)}
-.btn.danger{background:#fde8ea;color:#c23a4f}
+.btn.danger{background:var(--dangerbg);color:var(--dangerfg)}
 .addrow{display:block;width:100%;padding:16px;border-radius:24px;border:1.5px dashed rgba(255,255,255,.5);color:#fff;font-weight:500;margin-bottom:14px}
 .foot{text-align:center;opacity:.6;margin:22px 0 0}
 
@@ -119,19 +128,33 @@ input,select{font:inherit}
   border-radius:50% 50% 0 0 / 34px 34px 0 0;padding:20px 0 calc(10px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,.18)}
 .dhead{display:flex;justify-content:space-between;align-items:center;padding:0 22px}
 .dhead .mono{color:var(--ink2);font-size:10.5px}
+.dtog{display:flex;align-items:center;gap:8px;padding:6px 0;touch-action:none}
+.dtog svg{width:14px;height:14px;color:var(--ink2);transition:transform .25s}
+.dock.min .dtog svg{transform:rotate(180deg)}
+.dsum{display:none;padding:2px 22px 0;font-size:15px;font-weight:500}
+.dsum .ok{color:var(--okfg)}.dsum .no{color:var(--nofg)}
+.wins{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:10px 22px 0}
+.wins::-webkit-scrollbar{display:none}
+.wins .mono{flex:none;align-self:center;color:var(--ink2);font-size:9.5px;margin-right:2px}
+.wins button{flex:none;padding:6px 11px;border-radius:999px;background:var(--okbg);color:var(--okfg);font-size:12.5px;font-weight:500;white-space:nowrap}
+.wins .none{flex:none;font-size:12.5px;color:var(--nofg)}
+.dock.min{padding-top:14px}
+.dock.min .dtime,.dock.min .ruler,.dock.min .needle,.dock.min .fade,.dock.min .wins,.dock.min #bNow{display:none}
+.dock.min .dsum{display:block}
+body.dockmin{--dock:64px}
 .pill{padding:6px 14px;border-radius:999px;border:1.5px solid var(--ink);font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
-.pill.on{background:var(--ink);color:#fff}
+.pill.on{background:var(--ink);color:var(--onink)}
 .dtime{display:flex;align-items:baseline;gap:8px;padding:6px 22px 0}
 .dtime b{font-weight:400;font-size:30px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .dtime .ap{font-size:14px}
-.dstate{margin-left:auto;font-size:12.5px;font-weight:500;padding:4px 10px;border-radius:999px;background:var(--okbg);color:#178a5c;white-space:nowrap;align-self:center}
-.dstate.no{background:#f4ece3;color:#9a6a3c}
+.dstate{margin-left:auto;font-size:12.5px;font-weight:500;padding:4px 10px;border-radius:999px;background:var(--okbg);color:var(--okfg);white-space:nowrap;align-self:center}
+.dstate.no{background:var(--nobg);color:var(--nofg)}
 .ruler{position:relative;margin-top:10px;height:64px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;touch-action:pan-x;cursor:grab}
 .ruler::-webkit-scrollbar{display:none}
 .rin{display:flex;height:100%}
 .rsp{flex:none}
 .track{position:relative;flex:none;height:100%;
-  background:repeating-linear-gradient(90deg,rgba(20,24,38,.28) 0 1px,transparent 1px var(--q)) 0 30px/100% 10px no-repeat}
+  background:repeating-linear-gradient(90deg,var(--tick) 0 1px,transparent 1px var(--q)) 0 30px/100% 10px no-repeat}
 .track .hr{position:absolute;top:24px;width:1.5px;height:20px;background:var(--ink);opacity:.75}
 .track .hl{position:absolute;top:46px;transform:translateX(-50%);font-family:var(--mono);font-size:10px;color:var(--ink2);white-space:nowrap}
 .track .day{position:absolute;top:2px;transform:translateX(4px);font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);font-weight:500}
@@ -139,8 +162,8 @@ input,select{font:inherit}
 .needle{position:absolute;left:50%;bottom:calc(10px + env(safe-area-inset-bottom));height:52px;width:2px;margin-left:-1px;background:#e8643c;border-radius:2px;pointer-events:none}
 .needle::before{content:'';position:absolute;top:-5px;left:-4px;width:10px;height:10px;border-radius:50%;background:#e8643c}
 .fade{position:absolute;bottom:0;height:80px;width:40px;pointer-events:none}
-.fade.l{left:0;background:linear-gradient(90deg,var(--cream),rgba(251,249,244,0))}
-.fade.r{right:0;background:linear-gradient(-90deg,var(--cream),rgba(251,249,244,0))}
+.fade.l{left:0;background:linear-gradient(90deg,var(--cream),var(--creamT))}
+.fade.r{right:0;background:linear-gradient(-90deg,var(--cream),var(--creamT))}
 
 /* ---------- Sheets ---------- */
 #modal{position:fixed;inset:0;z-index:60;display:none;place-items:start center;background:rgba(10,12,24,.55);padding:calc(env(safe-area-inset-top) + 16px) 16px 16px}
@@ -155,13 +178,13 @@ input,select{font:inherit}
 select.inp{appearance:none}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chips button{padding:8px 13px;border-radius:999px;background:var(--cream2);font-size:13.5px;color:var(--ink2)}
-.chips button.on{background:var(--ink);color:#fff}
+.chips button.on{background:var(--ink);color:var(--onink)}
 .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;border-radius:15px;background:var(--cream2)}
 .seg.two{grid-template-columns:1fr 1fr}
 .seg button{padding:11px 4px;border-radius:11px;color:var(--ink2);font-size:14.5px;white-space:nowrap}
-.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08)}
 .results{display:flex;flex-direction:column;gap:4px}
-.results button{text-align:left;padding:12px 14px;border-radius:13px;background:#fff;font-size:15px;color:var(--ink)}
+.results button{text-align:left;padding:12px 14px;border-radius:13px;background:var(--card);font-size:15px;color:var(--ink)}
 .results button span{color:var(--ink2);font-size:12.5px}
 .note{font-size:13px;color:var(--ink2);line-height:1.5;padding:2px}
 .picked{padding:13px 15px;border-radius:15px;background:var(--okbg);font-size:15px}
@@ -169,7 +192,7 @@ select.inp{appearance:none}
 .actions{display:flex;gap:8px}
 .actions .btn{flex:1}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 16px);transform:translate(-50%,-20px);opacity:0;z-index:80;padding:12px 18px;border-radius:14px;background:var(--ink);color:#fff;font-size:14px;transition:.3s;pointer-events:none}
+.toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 16px);transform:translate(-50%,-20px);opacity:0;z-index:80;padding:12px 18px;border-radius:14px;background:var(--ink);color:var(--onink);font-size:14px;transition:.3s;pointer-events:none}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 
 /* ---------- Globe view ---------- */
@@ -228,8 +251,10 @@ select.inp{appearance:none}
 </main>
 
 <div class="dock" id="dock">
-  <div class="dhead"><span class="mono">Plan a call · your time</span><button class="pill on" id="bNow">Now</button></div>
+  <div class="dhead"><button class="dtog" id="dTog" aria-label="Show or hide the call planner"><span class="mono">Plan a call · your time</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg></button><button class="pill on" id="bNow">Now</button></div>
+  <div class="dsum" id="dSum"></div>
   <div class="dtime"><b id="dT">--:--</b><span class="ap" id="dAp"></span><span class="mono" id="dDay" style="color:var(--ink2);font-size:10.5px"></span><span class="dstate" id="dState"></span></div>
+  <div class="wins" id="dWins"></div>
   <div class="ruler" id="ruler"><div class="rin"><div class="rsp" id="rsp1"></div><div class="track" id="track"></div><div class="rsp" id="rsp2"></div></div></div>
   <div class="needle"></div>
   <div class="fade l"></div><div class="fade r"></div>
@@ -525,8 +550,9 @@ function updateDial(){
   $('#dDay').textContent = T ? whenLabel(d) : 'Now';
   $('#bNow').classList.toggle('on', !T);
   const ps = people();
-  if (!S.home || !S.members.length) { $('#dState').textContent = 'Add family first'; $('#dState').className = 'dstate no'; return; }
+  if (!S.home || !S.members.length) { $('#dState').textContent = 'Add family first'; $('#dState').className = 'dstate no'; setHTML('#dSum', '<span class="no">Add your family to plan calls</span>'); setHTML('#dWins', ''); return; }
   const n = ps.filter(p => isAwake(p, d)).length;
+  renderWins();
   $('#dState').textContent = n === ps.length ? '✓ Everyone awake' : `${n} of ${ps.length} awake`;
   $('#dState').className = 'dstate' + (n === ps.length ? '' : ' no');
 }
@@ -547,6 +573,36 @@ ruler.addEventListener('scroll', () => {
   addEventListener('mouseup', () => x0 = null);
   ruler.addEventListener('wheel', e => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) { ruler.scrollLeft += e.deltaY; e.preventDefault(); } }, {passive:false});
 })();
+// "7:00 – 10:00 pm" (am/pm written once when both ends share it)
+function rangeText(s, e){
+  const tz = homeTz(), a = tparts(tz, s), b = tparts(tz, e);
+  return a.ap === b.ap ? `${a.hm} – ${b.hm}${b.ap ? ' ' + b.ap : ''}` : `${a.hm} ${a.ap} – ${b.hm} ${b.ap}`;
+}
+function renderWins(){
+  const wins = (W8 || (W8 = callWindows())).wins.filter(w => w.e > Date.now()), w = wins[0];
+  setHTML('#dWins', wins.length
+    ? '<span class="mono">Everyone awake</span>' + wins.slice(0,4).map(x => `<button data-goto="${Math.max(x.s.getTime(), T0)}">${whenLabel(x.s < Date.now() ? new Date() : x.s)} ${rangeText(x.s < Date.now() ? new Date() : x.s, x.e)}</button>`).join('')
+    : '<span class="none">No time in the next 2 days when everyone is awake</span>');
+  setHTML('#dSum', !w ? '<span class="no">No shared awake time in the next 2 days</span>'
+    : w.s <= Date.now() ? `<span class="ok">✓ Everyone is awake now</span> · until ${hhmm(homeTz(), w.e)}`
+    : `<span class="ok">All awake:</span> ${whenLabel(w.s)} ${rangeText(w.s, w.e)}`);
+}
+// collapse / expand the planner: tap the title or swipe the dock down / up
+function setDock(min){
+  $('#dock').classList.toggle('min', min); document.body.classList.toggle('dockmin', min);
+  try { localStorage.setItem('wordtime.dock', min ? 'min' : 'open'); } catch(e) {}
+  if (min && T) { T = null; ruler.scrollLeft = 0; updateDial(); render(); }
+  if (!min) buildDial();
+}
+$('#dTog').onclick = () => setDock(!$('#dock').classList.contains('min'));
+$('#dSum').onclick = () => setDock(false);
+(() => { let y0 = null;
+  const head = e => e.target.closest('.dhead,.dsum,.dtime');
+  $('#dock').addEventListener('touchstart', e => { y0 = head(e) ? e.touches[0].clientY : null; }, {passive:true});
+  $('#dock').addEventListener('touchend', e => { if (y0 === null) return; const dy = e.changedTouches[0].clientY - y0; y0 = null;
+    if (dy > 30) setDock(true); else if (dy < -30) setDock(false); });
+})();
+try { if (localStorage.getItem('wordtime.dock') === 'min') { $('#dock').classList.add('min'); document.body.classList.add('dockmin'); } } catch(e) {}
 function goTo(ms){ ruler.scrollTo({left: Math.max(0, (ms - T0)/3600e3*PXH), behavior:'smooth'}); }
 $('#bNow').onclick = () => goTo(T0);
 
@@ -639,12 +695,14 @@ function openSettings(){
   openSheet(`
     <h2>Settings</h2>
     <div class="field"><label>Clock</label><div class="seg two" id="sFmt"><button data-f="12" class="${S.h12!==false?'on':''}">12 hour · 7:30 pm</button><button data-f="24" class="${S.h12===false?'on':''}">24 hour · 19:30</button></div></div>
+    <div class="field"><label>Appearance</label><div class="seg" id="sTheme"><button data-t="auto" class="${(S.theme||'auto')==='auto'?'on':''}">Auto</button><button data-t="light" class="${S.theme==='light'?'on':''}">☀ Light</button><button data-t="dark" class="${S.theme==='dark'?'on':''}">☾ Dark</button></div><div class="note">Auto follows the phone's own light or dark setting.</div></div>
     <div class="field"><label>Everyone is usually awake</label><div class="two"><select class="inp" id="awF" aria-label="From">${opt(S.awake.from)}</select><select class="inp" id="awT" aria-label="Until">${opt(S.awake.to)}</select></div></div>
     <div class="field"><label>Other devices</label><button class="btn light" id="sShare">Copy link with family data</button><div class="note">Open this link on the phone or the laptop and the family appears there too. Only send it to your own devices.</div></div>
     <button class="btn light" id="sIntro">Show the intro again</button>
     <button class="btn danger" id="sReset">Start over (delete everything)</button>
     <button class="btn" id="sDone">Done</button>`);
   $('#sFmt').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.h12 = b.dataset.f === '12'; save(); openSettings(); changed(); };
+  $('#sTheme').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.theme = b.dataset.t; save(); applyTheme(); openSettings(); };
   $('#awF').onchange = e => { S.awake.from = +e.target.value; save(); changed(); };
   $('#awT').onchange = e => { S.awake.to = +e.target.value; save(); changed(); };
   $('#sShare').onclick = async () => {
@@ -802,11 +860,11 @@ const Atlas = (() => {
 })();
 
 /* ================= Wiring ================= */
-function changed(){ W8 = null; render(); buildDial(); refreshGlobe(); }
+function changed(){ W8 = null; applyTheme(); render(); buildDial(); refreshGlobe(); }
 document.addEventListener('click', e => {
   const ed = e.target.closest('[data-edit]'); if (ed) return openEdit(ed.dataset.edit);
   if (e.target.closest('[data-add]')) return openEdit('new');
-  const go = e.target.closest('[data-goto]'); if (go) return goTo(+go.dataset.goto);
+  const go = e.target.closest('[data-goto]'); if (go) { if ($('#dock').classList.contains('min')) setDock(false); return goTo(+go.dataset.goto); }
 });
 $('#bAdd').onclick = () => openEdit(S.home ? 'new' : 'home');
 $('#bSet').onclick = openSettings;
@@ -827,6 +885,15 @@ setInterval(() => {
 }, 15e3);
 // back from the background: jump to now
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { T = null; ruler.scrollLeft = 0; changed(); } });
+
+/* ================= Theme ================= */
+const darkMQ = matchMedia('(prefers-color-scheme: dark)');
+function applyTheme(){
+  const t = S.theme || 'auto';
+  document.documentElement.dataset.theme = t === 'dark' || (t === 'auto' && darkMQ.matches) ? 'dark' : 'light';
+}
+darkMQ.addEventListener?.('change', applyTheme);
+applyTheme();
 
 /* ================= Boot ================= */
 (function boot(){
