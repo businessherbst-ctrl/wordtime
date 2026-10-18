@@ -741,7 +741,15 @@ async function geo(q){
   if (seq !== geoSeq) return; // a newer search is running
   if (!res) { $('#fRes').innerHTML = `<div class="note">No city found. Check the spelling or the internet connection and try again.</div>`; return; }
   $('#fRes').innerHTML = res.map((x,i) => `<button data-i="${i}">${flag(x.cc)} ${esc(x.city)} <span>${esc([x.region,x.country].filter(Boolean).join(', '))}</span></button>`).join('');
-  $('#fRes').onclick = e => {
+  // pick on pointerup and keep the input focused on pointerdown: otherwise the phone keyboard
+  // closes first, the list jumps up, and the tap lands somewhere else
+  const R = $('#fRes'); let down = null;
+  R.onpointerdown = e => { down = {x:e.clientX, y:e.clientY}; e.preventDefault(); };
+  R.onmousedown = e => e.preventDefault();
+  R.onclick = null;
+  R.onpointerup = e => {
+    if (!down || Math.hypot(e.clientX-down.x, e.clientY-down.y) > 12) { down = null; return; }
+    down = null;
     const b = e.target.closest('button'); if (!b) return; const x = res[+b.dataset.i];
     picked = {city:x.city, country:x.country, cc:x.cc, lat:x.lat, lon:x.lon, tz:x.tz};
     $('#fPicked').innerHTML = pickedHTML(picked); $('#fRes').innerHTML = ''; $('#fCity').value = ''; $('#fCity').blur();
