@@ -1,0 +1,822 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#05070f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WorldTime">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>WorldTime</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05070f; --glass:rgba(14,18,34,.72); --glass2:rgba(255,255,255,.06);
+  --line:rgba(255,255,255,.09); --text:#eef2ff; --mute:#8d96b8; --dim:#5b6385;
+  --accent:#7cc4ff; --accent2:#b89cff; --ok:#5ef0b0; --warn:#ffcf6b;
+  --female:#ff7eb6; --male:#6fb6ff; --home:#ffd36b;
+  --r:22px; --panel:400px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:Outfit,system-ui,sans-serif;overflow:hidden}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+input,select{font:inherit;color:var(--text)}
+
+/* ---------- Intro ---------- */
+#intro{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 40%,#101a3a 0%,#05070f 65%);transition:opacity 1s ease, visibility 1s}
+#intro.gone{opacity:0;visibility:hidden}
+#intro .stars{position:absolute;inset:0;background:url(vendor/night-sky.png) center/cover;opacity:.5}
+.intro-in{position:relative;display:flex;flex-direction:column;align-items:center;gap:34px;text-align:center;padding:24px}
+.orbwrap{position:relative;width:200px;height:200px}
+.orb{position:absolute;inset:20px;border-radius:50%;background:url(vendor/earth-blue-marble.jpg) 0 0/auto 100% repeat-x;
+  animation:spin 18s linear infinite;
+  box-shadow:inset -34px -18px 50px rgba(0,0,0,.9), inset 12px 8px 30px rgba(255,255,255,.18), 0 0 70px rgba(90,170,255,.45), 0 0 140px rgba(120,100,255,.25)}
+@keyframes spin{to{background-position:-640px 0}}
+.ring{position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 0deg,transparent 0 70%,var(--accent) 88%,#fff 100%);
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 2px),#000 calc(100% - 2px));
+          mask:radial-gradient(farthest-side,transparent calc(100% - 2px),#000 calc(100% - 2px));
+  animation:rot 1.6s linear infinite}
+.ring.r2{inset:-14px;opacity:.35;animation-duration:3.2s;animation-direction:reverse}
+@keyframes rot{to{transform:rotate(1turn)}}
+.made{font-weight:300;font-size:15px;letter-spacing:.24em;text-transform:uppercase;color:var(--mute);opacity:0;animation:up 1s .4s forwards}
+.names{font-size:30px;font-weight:600;line-height:1.25;opacity:0;animation:up 1s .9s forwards;
+  background:linear-gradient(90deg,#fff,#cfe6ff 40%,#e3d4ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.from{font-size:16px;color:var(--mute);opacity:0;animation:up 1s 1.5s forwards}
+.from b{color:var(--text);font-weight:500}
+.heart{display:inline-block;color:#ff6f9f;animation:beat 1.2s ease-in-out infinite;-webkit-text-fill-color:#ff6f9f}
+@keyframes beat{0%,100%{transform:scale(1)}15%{transform:scale(1.25)}30%{transform:scale(1)}45%{transform:scale(1.15)}}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.loadbar{width:180px;height:2px;background:var(--line);border-radius:2px;overflow:hidden}
+.loadbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s}
+
+/* ---------- Stage ---------- */
+#stage{position:fixed;inset:0 calc(var(--panel) + 24px) 0 0}
+#globe,#atlas{position:absolute;inset:0}
+#atlas{display:none;touch-action:none;cursor:grab}
+#atlas:active{cursor:grabbing}
+.topbar{position:fixed;top:max(16px,env(safe-area-inset-top));left:20px;z-index:10;display:flex;flex-direction:column;gap:12px;pointer-events:none}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:20px;letter-spacing:.02em}
+.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 14px var(--accent)}
+.brandrow{display:flex;align-items:center;gap:12px}
+.fmt{display:flex;padding:3px;border-radius:999px;background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--line);pointer-events:auto}
+.fmt button{padding:4px 10px;border-radius:999px;font-size:12px;color:var(--mute);transition:.2s}
+.fmt button.on{background:rgba(255,255,255,.12);color:var(--text)}
+.views{display:flex;gap:4px;padding:4px;border-radius:999px;background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--line);pointer-events:auto;width:max-content}
+.views button{padding:7px 14px;border-radius:999px;font-size:13px;color:var(--mute);transition:.2s}
+.views button.on{background:rgba(255,255,255,.12);color:var(--text)}
+.fab{position:fixed;z-index:10;left:20px;bottom:24px;display:flex;gap:8px}
+.fab button{width:42px;height:42px;border-radius:50%;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);font-size:17px}
+
+/* markers on the globe */
+.mk{display:flex;align-items:center;gap:6px;transform:translate(-50%,-50%);pointer-events:auto;cursor:pointer;transition:opacity .3s;white-space:nowrap}
+.mk .av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:14px;color:#0b0e1a;background:var(--c);box-shadow:0 0 0 3px rgba(255,255,255,.18),0 0 18px var(--c)}
+.mk .lb{padding:4px 9px;border-radius:10px;background:rgba(8,10,22,.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--line);font-size:12px;line-height:1.2}
+.mk .lb b{display:block;font-weight:600;font-size:12.5px}
+.mk .lb span{color:var(--mute)}
+.mk.home .av{border-radius:10px}
+
+/* ---------- Panel ---------- */
+#panel{position:fixed;z-index:20;top:16px;right:16px;bottom:16px;width:var(--panel);display:flex;flex-direction:column;
+  background:var(--glass);backdrop-filter:blur(22px) saturate(1.3);-webkit-backdrop-filter:blur(22px) saturate(1.3);border:1px solid var(--line);border-radius:28px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.grab{display:none}
+.tabs{display:flex;gap:4px;margin:14px 14px 0;padding:4px;border-radius:16px;background:var(--glass2)}
+.tabs button{flex:1;padding:10px 6px;border-radius:12px;font-size:14px;color:var(--mute);font-weight:500;transition:.2s}
+.tabs button.on{background:rgba(255,255,255,.1);color:var(--text)}
+.scroll{flex:1;overflow-y:auto;padding:16px 14px 28px;scrollbar-width:thin}
+.tab{display:none;flex-direction:column;gap:12px}
+.tab.on{display:flex}
+h3{margin:10px 4px 0;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);font-weight:500}
+
+.card{position:relative;display:flex;gap:14px;align-items:center;padding:14px;border-radius:var(--r);background:var(--glass2);border:1px solid var(--line);transition:.2s;cursor:pointer}
+.card:hover{background:rgba(255,255,255,.09)}
+.card .av{flex:none;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:19px;color:#0b0e1a;background:var(--c);box-shadow:0 0 22px -4px var(--c);position:relative}
+.card .av small{position:absolute;right:-3px;bottom:-3px;width:19px;height:19px;border-radius:50%;background:#141a30;color:var(--c);font-size:11px;display:grid;place-items:center;border:1px solid var(--line)}
+.card .mid{flex:1;min-width:0}
+.card .nm{font-weight:600;font-size:16px}
+.card .ct{color:var(--mute);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.welcome .ct{white-space:normal;line-height:1.45}
+.card .km{color:var(--dim);font-size:12px;margin-top:3px}
+.card .rt{text-align:right;flex:none}
+.card .tm{font-size:24px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.card .df{font-size:12px;color:var(--mute)}
+.card .ic{font-size:13px;margin-left:4px}
+.card .ed{display:inline-grid;place-items:center;width:24px;height:24px;margin-left:6px;border-radius:50%;background:rgba(255,255,255,.07);font-size:12px;color:var(--mute);vertical-align:2px}
+.card .ed:hover{background:rgba(255,255,255,.16);color:var(--text)}
+.homecard{flex-direction:column;align-items:stretch;gap:6px;background:linear-gradient(135deg,rgba(255,211,107,.12),rgba(124,196,255,.06));border-color:rgba(255,211,107,.25)}
+.homecard .row{display:flex;justify-content:space-between;align-items:center}
+.homecard .big{font-size:46px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1}
+.homecard .lbl{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--home)}
+.homecard .ct{font-size:14px;color:var(--mute)}
+.btn{padding:13px 16px;border-radius:16px;background:linear-gradient(135deg,rgba(124,196,255,.22),rgba(184,156,255,.22));border:1px solid rgba(124,196,255,.3);font-weight:500;font-size:15px;transition:.2s}
+.btn:hover{filter:brightness(1.2)}
+.btn.ghost{background:var(--glass2);border-color:var(--line)}
+.btn.danger{background:rgba(255,90,120,.12);border-color:rgba(255,90,120,.3);color:#ff9fb4}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{padding:14px;border-radius:18px;background:var(--glass2);border:1px solid var(--line)}
+.stat b{display:block;font-size:22px;font-weight:600}
+.stat span{font-size:12px;color:var(--mute)}
+
+/* call planner */
+.callhero{padding:18px;border-radius:var(--r);background:linear-gradient(135deg,rgba(94,240,176,.14),rgba(124,196,255,.08));border:1px solid rgba(94,240,176,.28)}
+.callhero.none{background:linear-gradient(135deg,rgba(255,207,107,.14),rgba(255,126,182,.08));border-color:rgba(255,207,107,.3)}
+.callhero .lbl{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ok)}
+.callhero.none .lbl{color:var(--warn)}
+.callhero .when{font-size:28px;font-weight:600;margin:6px 0 2px}
+.callhero .sub{color:var(--mute);font-size:14px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chip{display:flex;align-items:center;gap:6px;padding:5px 10px 5px 5px;border-radius:999px;background:rgba(0,0,0,.25);font-size:12.5px}
+.chip i{width:18px;height:18px;border-radius:50%;background:var(--c);font-style:normal;font-size:10px;font-weight:700;color:#0b0e1a;display:grid;place-items:center}
+.win{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-radius:16px;background:var(--glass2);border:1px solid var(--line);font-size:14px}
+.win b{font-weight:600}
+.win span{color:var(--mute);font-size:13px}
+.tl{padding:14px;border-radius:var(--r);background:var(--glass2);border:1px solid var(--line)}
+.tlrow{display:flex;align-items:center;gap:8px;margin:5px 0}
+.tlrow .who{width:56px;font-size:12px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{position:relative;flex:1;height:16px;display:flex;border-radius:6px;overflow:hidden;background:rgba(0,0,0,.3)}
+.bar i{flex:1}
+.bar .now{position:absolute;top:-2px;bottom:-2px;width:2px;background:#fff;box-shadow:0 0 8px #fff;border-radius:2px}
+.tlhours{display:flex;justify-content:space-between;margin-left:64px;font-size:10px;color:var(--dim);margin-top:4px}
+.note{font-size:12.5px;color:var(--dim);line-height:1.5;padding:0 4px}
+
+/* settings */
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:12px;color:var(--mute);padding-left:4px}
+.inp{width:100%;padding:13px 14px;border-radius:14px;background:rgba(0,0,0,.28);border:1px solid var(--line);outline:none;font-size:16px}
+.inp:focus{border-color:rgba(124,196,255,.5)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+select.inp{appearance:none}
+
+/* modal */
+#modal{position:fixed;inset:0;z-index:60;display:none;place-items:center;background:rgba(2,4,10,.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:16px}
+#modal.on{display:grid}
+.sheet{width:100%;max-width:420px;max-height:92vh;overflow:auto;padding:22px;border-radius:28px;background:#0e1326;border:1px solid var(--line);display:flex;flex-direction:column;gap:14px;box-shadow:0 30px 90px rgba(0,0,0,.6);animation:pop .25s ease}
+@keyframes pop{from{transform:translateY(16px) scale(.98);opacity:0}}
+.sheet h2{margin:0;font-size:22px;font-weight:600}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:4px;border-radius:14px;background:rgba(0,0,0,.28);border:1px solid var(--line)}
+.seg button{padding:10px;border-radius:10px;color:var(--mute)}
+.seg button.on[data-g=f]{background:rgba(255,126,182,.2);color:var(--female)}
+.seg button.on[data-g=m]{background:rgba(111,182,255,.2);color:var(--male)}
+.results{display:flex;flex-direction:column;gap:4px}
+.results button{text-align:left;padding:10px 12px;border-radius:12px;background:var(--glass2);font-size:14px}
+.results button:hover{background:rgba(255,255,255,.1)}
+.results button span{color:var(--mute);font-size:12px}
+.picked{padding:12px 14px;border-radius:14px;background:rgba(94,240,176,.1);border:1px solid rgba(94,240,176,.3);font-size:14px}
+.picked span{color:var(--mute);font-size:12px}
+.actions{display:flex;gap:8px}
+.actions .btn{flex:1}
+.toast{position:fixed;left:50%;bottom:30px;transform:translate(-50%,20px);opacity:0;z-index:80;padding:12px 18px;border-radius:14px;background:#1a2140;border:1px solid var(--line);font-size:14px;transition:.3s;pointer-events:none}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- Mobile ---------- */
+@media (max-width:820px){
+  #stage{inset:118px 0 50dvh 0}
+  .topbar{top:0;left:0;right:0;gap:10px;padding:calc(env(safe-area-inset-top) + 10px) 16px 40px;
+    background:linear-gradient(#05070f calc(100% - 46px),rgba(5,7,15,0))}
+  .brandrow{justify-content:space-between}
+  .brand{font-size:19px}
+  .fmt button{padding:7px 13px;font-size:13px}
+  .views{width:100%}
+  .views button{flex:1;padding:10px 0;font-size:14px}
+  .fab{left:auto;right:14px;bottom:52dvh;flex-direction:column;gap:10px;transition:bottom .35s cubic-bezier(.2,.8,.2,1)}
+  .fab.dragging{transition:none}
+  .fab button{width:44px;height:44px;font-size:18px}
+  .scroll{transition:opacity .2s}
+  #panel.min .scroll{opacity:0;visibility:hidden}
+  #panel{top:auto;left:0;right:0;bottom:0;width:auto;height:50dvh;border-radius:28px 28px 0 0;border-bottom:0;transition:height .35s cubic-bezier(.2,.8,.2,1)}
+  #panel.dragging{transition:none}
+  .grab{display:block;flex:none;padding:12px 0 4px;touch-action:none;cursor:grab}
+  .grab::before{content:'';display:block;width:44px;height:5px;border-radius:5px;background:rgba(255,255,255,.3);margin:0 auto}
+  .tabs{margin-top:4px;flex:none}
+  .scroll{overscroll-behavior:contain}
+  .scroll{padding-bottom:calc(28px + env(safe-area-inset-bottom))}
+  .homecard .big{font-size:40px}
+}
+</style>
+</head>
+<body>
+
+<div id="intro">
+  <div class="stars"></div>
+  <div class="intro-in">
+    <div class="orbwrap"><div class="ring r2"></div><div class="ring"></div><div class="orb"></div></div>
+    <div>
+      <div class="made">Made with love for</div>
+      <div class="names">Yurie <span class="heart">♥</span> Graeme</div>
+    </div>
+    <div class="from">from <b>Miki</b> and <b>Lennox</b></div>
+    <div class="loadbar"><i id="loadbar"></i></div>
+  </div>
+</div>
+
+<div id="stage"><div id="globe"></div><canvas id="atlas"></canvas></div>
+
+<div class="topbar">
+  <div class="brandrow"><div class="brand"><span class="dot"></span>WorldTime</div>
+    <div class="fmt" id="fmt"><button data-f="12">12h</button><button data-f="24">24h</button></div></div>
+  <div class="views" id="views">
+    <button data-v="live" class="on">Live</button>
+    <button data-v="day">Day</button>
+    <button data-v="night">Night</button>
+    <button data-v="atlas">Atlas</button>
+  </div>
+</div>
+<div class="fab">
+  <button id="btnHome" title="Fly home">⌂</button>
+  <button id="btnSpin" title="Rotate">↻</button>
+</div>
+
+<aside id="panel">
+  <div class="grab" id="grab"></div>
+  <div class="tabs" id="tabs">
+    <button data-t="family" class="on">Family</button>
+    <button data-t="call">Call time</button>
+    <button data-t="settings">Settings</button>
+  </div>
+  <div class="scroll">
+    <section class="tab on" id="t-family"></section>
+    <section class="tab" id="t-call"></section>
+    <section class="tab" id="t-settings"></section>
+  </div>
+</aside>
+
+<div id="modal"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+
+<script src="vendor/globe.gl.min.js"></script>
+<script>
+/* ================= Data ================= */
+const KEY = 'wordtime.v1';
+const PALETTE_F = ['#ff7eb6','#ff9f7e','#e58bff','#ffb3d1'];
+const PALETTE_M = ['#6fb6ff','#5ef0d0','#8f9bff','#7fe0ff'];
+const EMPTY = {home:null, members:[], awake:{from:8, to:22}, h12:true};
+let S = load();
+function load(){
+  // a share link (#d=...) carries the whole family to another device
+  if (location.hash.startsWith('#d=')) {
+    try {
+      const d = JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(3)))));
+      history.replaceState(null,'',location.pathname);
+      localStorage.setItem(KEY, JSON.stringify(d));
+      return d;
+    } catch(e) {}
+  }
+  // old builds stored example entries (demo:true); those are dropped
+  try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && d.members && !d.demo) return d; } catch(e) {}
+  return structuredClone(EMPTY);
+}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {} }
+
+/* ================= Time helpers ================= */
+const fmtCache = {};
+function parts(tz, d){
+  const f = fmtCache[tz] || (fmtCache[tz] = new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',weekday:'short'}));
+  const o = {}; for (const p of f.formatToParts(d)) o[p.type] = p.value; return o;
+}
+function offsetMin(tz, d=new Date()){
+  const p = parts(tz, d);
+  const asUTC = Date.UTC(+p.year, +p.month-1, +p.day, +p.hour, +p.minute);
+  return Math.round((asUTC - Math.floor(d.getTime()/60000)*60000)/60000);
+}
+function localHour(tz, d){ const p = parts(tz, d); return +p.hour + (+p.minute)/60; }
+const hhmm = (tz, d=new Date()) => {
+  const p = parts(tz,d), h = +p.hour, mm = String(p.minute).padStart(2,'0');
+  return S.h12 === false ? String(h).padStart(2,'0')+':'+mm : (h%12||12)+':'+mm+' '+(h<12?'AM':'PM');
+};
+const weekday = (tz, d=new Date()) => parts(tz,d).weekday;
+function dayKey(tz, d){ const p = parts(tz,d); return Date.UTC(+p.year,+p.month-1,+p.day); }
+const homeTz = () => S.home ? S.home.tz : Intl.DateTimeFormat().resolvedOptions().timeZone;
+function diffText(tz){
+  const now = new Date();
+  const m = offsetMin(tz, now) - offsetMin(homeTz(), now);
+  if (m === 0) return 'same time as home';
+  const h = Math.floor(Math.abs(m)/60), mm = Math.abs(m)%60;
+  const s = (m>0?'+':'−') + h + 'h' + (mm? ' '+mm+'m':'');
+  const dd = (dayKey(tz,now) - dayKey(homeTz(),now))/864e5;
+  return s + (dd>0 ? ' · tomorrow' : dd<0 ? ' · yesterday' : '');
+}
+const hourLabel = h => S.h12 === false ? String(h).padStart(2,'0')+':00' : (h%12||12)+' '+(h<12?'AM':'PM');
+const within = (h,f,t) => f<t ? (h>=f && h<t) : (h>=f || h<t);
+const isAwake = (p, d) => within(localHour(p.tz, d), S.awake.from, S.awake.to);
+function dayIcon(tz){ const h = localHour(tz, new Date()); return h>=6.5 && h<19 ? '☀️' : h>=19 && h<22 ? '🌆' : '🌙'; }
+
+/* ================= Geo helpers ================= */
+function km(a,b){
+  const R=6371, r=Math.PI/180, dLa=(b.lat-a.lat)*r, dLo=(b.lon-a.lon)*r;
+  const x = Math.sin(dLa/2)**2 + Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dLo/2)**2;
+  return Math.round(2*R*Math.asin(Math.sqrt(x)));
+}
+const flag = cc => cc ? cc.toUpperCase().replace(/./g, c => String.fromCodePoint(127397 + c.charCodeAt())) : '';
+const fmtKm = n => n.toLocaleString('en-US') + ' km';
+function colorOf(m){
+  const pal = m.gender==='m' ? PALETTE_M : PALETTE_F;
+  const idx = S.members.filter(x=>x.gender===m.gender).indexOf(m);
+  return pal[Math.max(0,idx) % pal.length];
+}
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const initial = n => esc((n||'?').trim().charAt(0).toUpperCase());
+
+// sun position (good to a fraction of a degree, plenty for a terminator)
+function subsolar(d=new Date()){
+  const start = Date.UTC(d.getUTCFullYear(),0,0);
+  const N = (d - start)/864e5;
+  const g = 2*Math.PI/365*(N-1);
+  const decl = 0.006918-0.399912*Math.cos(g)+0.070257*Math.sin(g)-0.006758*Math.cos(2*g)+0.000907*Math.sin(2*g);
+  const eot = 229.18*(0.000075+0.001868*Math.cos(g)-0.032077*Math.sin(g)-0.014615*Math.cos(2*g)-0.040849*Math.sin(2*g));
+  const utcMin = d.getUTCHours()*60 + d.getUTCMinutes() + d.getUTCSeconds()/60;
+  const lon = -(utcMin + eot - 720)/4;
+  return {lat: decl*180/Math.PI, lon};
+}
+
+/* ================= Textures (day/night composite) ================= */
+const IMG = {};
+function loadImg(k, src){ return new Promise(res => { const i = new Image(); i.onload = () => { IMG[k]=i; res(i); }; i.onerror = () => res(null); i.src = src; }); }
+const W = 2048, H = 1024;
+const nightMask = document.createElement('canvas'); nightMask.width = 360; nightMask.height = 180;
+const composite = document.createElement('canvas'); composite.width = W; composite.height = H;
+function buildMask(){
+  const ctx = nightMask.getContext('2d'), img = ctx.createImageData(360,180), s = subsolar();
+  const r = Math.PI/180, sd = Math.sin(s.lat*r), cd = Math.cos(s.lat*r);
+  for (let y=0;y<180;y++){
+    const la = (90 - y - .5)*r, sl = Math.sin(la), cl = Math.cos(la);
+    for (let x=0;x<360;x++){
+      const lo = (x + .5 - 180)*r;
+      const cz = sl*sd + cl*cd*Math.cos(lo - s.lon*r);
+      const t = Math.min(1, Math.max(0, (0.08 - cz)/0.18)); // soft twilight band
+      img.data[(y*360+x)*4+3] = Math.round(t*255);
+    }
+  }
+  ctx.putImageData(img,0,0);
+}
+let liveURL = null;
+function buildComposite(){
+  if (!IMG.day || !IMG.night) return null;
+  buildMask();
+  const c = composite.getContext('2d');
+  c.globalCompositeOperation = 'source-over';
+  c.drawImage(IMG.day,0,0,W,H);
+  // night layer: city lights masked by where the sun is down
+  const n = document.createElement('canvas'); n.width=W; n.height=H;
+  const nc = n.getContext('2d');
+  nc.drawImage(IMG.night,0,0,W,H);
+  nc.globalCompositeOperation = 'destination-in';
+  nc.imageSmoothingEnabled = true;
+  nc.drawImage(nightMask,0,0,W,H);
+  c.drawImage(n,0,0);
+  try { liveURL = composite.toDataURL('image/jpeg', .9); } catch(e) { liveURL = null; } // file:// taints the canvas
+  return liveURL;
+}
+
+/* ================= Globe ================= */
+let view = 'live', spin = true, G;
+const elStage = document.getElementById('stage');
+function people(){ return S.home ? [{...S.home, isHome:true, id:'home'}, ...S.members] : [...S.members]; }
+const START = {lat:20, lon:10};
+
+function markerEl(p){
+  const el = document.createElement('div');
+  el.className = 'mk' + (p.isHome ? ' home' : '');
+  el.style.setProperty('--c', p.isHome ? 'var(--home)' : colorOf(p));
+  el.dataset.id = p.id;
+  el.innerHTML = `<div class="av">${p.isHome ? '⌂' : initial(p.name)}</div><div class="lb"><b>${esc(p.isHome ? 'Home' : p.name)}</b><span data-time>${hhmm(p.tz)}</span> <span>${dayIcon(p.tz)}</span></div>`;
+  el.onclick = () => flyTo(p);
+  return el;
+}
+function initGlobe(){
+  G = Globe({animateIn:true})(document.getElementById('globe'))
+    .backgroundImageUrl('vendor/night-sky.png')
+    .globeImageUrl('vendor/earth-blue-marble.jpg')
+    .showAtmosphere(true).atmosphereColor('#7cc4ff').atmosphereAltitude(0.22)
+    .htmlElement(markerEl).htmlAltitude(0.02)
+    .arcColor(a => [ 'rgba(255,211,107,.9)', a.c ])
+    .arcStroke(0.55).arcDashLength(0.45).arcDashGap(0.18).arcDashAnimateTime(3500).arcAltitudeAutoScale(0.3)
+    .arcLabel(a => `<div style="font-family:Outfit;padding:4px 8px">${esc(a.name)} · ${fmtKm(a.km)}</div>`)
+    .ringColor(() => t => `rgba(255,211,107,${1-t})`).ringMaxRadius(5).ringPropagationSpeed(2.2).ringRepeatPeriod(1400);
+  if (G.htmlElementVisibilityModifier) G.htmlElementVisibilityModifier((el, vis) => { el.style.opacity = vis ? 1 : 0; el.style.pointerEvents = vis ? 'auto':'none'; });
+  const ctl = G.controls(); ctl.autoRotate = true; ctl.autoRotateSpeed = 0.35; ctl.enableDamping = true;
+  ctl.addEventListener('start', () => { if (spin) ctl.autoRotate = false; });
+  ctl.addEventListener('end', () => { clearTimeout(initGlobe.t); initGlobe.t = setTimeout(()=>{ if (spin) ctl.autoRotate = true; }, 6000); });
+  resize(); requestAnimationFrame(resize); setTimeout(resize, 500);
+  G.pointOfView({lat:(S.home||START).lat, lng:(S.home||START).lon, altitude: innerWidth<820 ? 2.8 : 2.2}, 0);
+  refreshGlobe();
+}
+function refreshGlobe(){
+  if (!G) return;
+  const ps = people();
+  G.htmlElementsData(ps.map(p => ({...p, lng:p.lon})));
+  G.arcsData(!S.home ? [] : S.members.map(m => ({startLat:S.home.lat, startLng:S.home.lon, endLat:m.lat, endLng:m.lon, c:colorOf(m), name:m.name, km:km(S.home,m)})));
+  G.ringsData(S.home ? [{lat:S.home.lat, lng:S.home.lon}] : []);
+}
+function applyTexture(){
+  if (!G) return;
+  if (view === 'live') G.globeImageUrl(liveURL || buildComposite() || 'vendor/earth-blue-marble.jpg');
+  if (view === 'day') G.globeImageUrl('vendor/earth-blue-marble.jpg');
+  if (view === 'night') G.globeImageUrl('vendor/earth-night.jpg');
+}
+function flyTo(p){
+  if (!p) return;
+  if (view === 'atlas') { Atlas.center(p); return; }
+  if (!G) return;
+  spin = false; G.controls().autoRotate = false; updSpin();
+  G.pointOfView({lat:p.lat, lng:p.lon, altitude:1.4}, 1600);
+}
+function resize(){
+  if (G) G.width(elStage.clientWidth).height(elStage.clientHeight);
+  Atlas.resize();
+}
+addEventListener('resize', resize);
+
+/* ================= Atlas (2D map) ================= */
+const Atlas = (() => {
+  const cv = document.getElementById('atlas'), ctx = cv.getContext('2d');
+  let z = 1, ox = 0, oy = 0, w = 0, h = 0, dpr = 1, ready = false;
+  const pointers = new Map(); let pinch = null;
+  function mapW(){ return Math.max(w, h*2) * z; }
+  function clamp(){
+    const mw = mapW(), mh = mw/2;
+    ox = ((ox % mw) + mw) % mw; // horizontal wrap
+    oy = mh <= h ? (h - mh)/2 : Math.min(0, Math.max(h - mh, oy));
+  }
+  function resize(){
+    dpr = Math.min(2, devicePixelRatio||1);
+    w = elStage.clientWidth; h = elStage.clientHeight;
+    cv.width = w*dpr; cv.height = h*dpr; cv.style.width = w+'px'; cv.style.height = h+'px';
+    if (!ready && w) { ready = true; center(S.home || START, true); }
+    clamp(); draw();
+  }
+  function center(p, quiet){
+    const mw = mapW(), mh = mw/2;
+    ox = (p.lon+180)/360*mw - w/2; oy = h/2 - (90-p.lat)/180*mh;
+    if (!quiet && z < 2.2) z = 2.2, center(p, true);
+    clamp(); draw();
+  }
+  const toXY = p => { const mw = mapW(); return [ (p.lon+180)/360*mw, (90-p.lat)/180*mw/2 ]; };
+  function draw(){
+    if (!w || cv.style.display === 'none' && view !== 'atlas') return;
+    const mw = mapW(), mh = mw/2;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.fillStyle = '#05070f'; ctx.fillRect(0,0,w,h);
+    const src = composite.width && liveURL ? composite : IMG.day;
+    for (let k=-1;k<=1;k++){
+      const x = -ox + k*mw;
+      if (x > w || x + mw < 0) continue;
+      if (src) ctx.drawImage(src, x, oy, mw, mh);
+      // graticule
+      ctx.strokeStyle = 'rgba(255,255,255,.07)'; ctx.lineWidth = 1; ctx.beginPath();
+      for (let lo=-180; lo<=180; lo+=30){ const gx = x+(lo+180)/360*mw; ctx.moveTo(gx,oy); ctx.lineTo(gx,oy+mh); }
+      for (let la=-60; la<=60; la+=30){ const gy = oy+(90-la)/180*mh; ctx.moveTo(x,gy); ctx.lineTo(x+mw,gy); }
+      ctx.stroke();
+      // arcs: great circle approximation via sampled lerp of lat/lon, drawn as curves
+      for (const m of S.home ? S.members : []){
+        const [hx,hy] = toXY(S.home), [mx,my] = toXY(m);
+        let dx = mx - hx; if (Math.abs(dx) > mw/2) dx -= Math.sign(dx)*mw; // shortest way round
+        const sx = x+hx, sy = oy+hy, ex = sx+dx, ey = oy+my;
+        const cxp = (sx+ex)/2, cyp = Math.min(sy,ey) - Math.hypot(dx, ey-sy)*0.25;
+        const grd = ctx.createLinearGradient(sx,sy,ex,ey); grd.addColorStop(0,'rgba(255,211,107,.9)'); grd.addColorStop(1,colorOf(m));
+        ctx.strokeStyle = grd; ctx.lineWidth = 2; ctx.setLineDash([8,6]); ctx.lineDashOffset = -performance.now()/40;
+        ctx.beginPath(); ctx.moveTo(sx,sy); ctx.quadraticCurveTo(cxp,cyp,ex,ey); ctx.stroke(); ctx.setLineDash([]);
+      }
+      for (const p of people()){
+        const [px,py] = toXY(p), X = x+px, Y = oy+py, c = p.isHome ? '#ffd36b' : colorOf(p);
+        ctx.shadowColor = c; ctx.shadowBlur = 16; ctx.fillStyle = c;
+        ctx.beginPath(); p.isHome ? ctx.roundRect(X-13,Y-13,26,26,7) : ctx.arc(X,Y,13,0,7); ctx.fill(); ctx.shadowBlur = 0;
+        ctx.fillStyle = '#0b0e1a'; ctx.font = '600 13px Outfit'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(p.isHome ? '⌂' : (p.name||'?').charAt(0).toUpperCase(), X, Y+1);
+        const label = (p.isHome ? 'Home' : p.name) + '  ' + hhmm(p.tz);
+        ctx.font = '500 12px Outfit'; const tw = ctx.measureText(label).width;
+        ctx.fillStyle = 'rgba(8,10,22,.78)'; ctx.beginPath(); ctx.roundRect(X+18, Y-12, tw+16, 24, 8); ctx.fill();
+        ctx.fillStyle = '#eef2ff'; ctx.textAlign = 'left'; ctx.fillText(label, X+26, Y+1);
+      }
+    }
+    // sun
+    const s = subsolar(), [sx0,sy0] = toXY(s);
+    for (let k=-1;k<=1;k++){ const X = -ox+k*mw+sx0, Y = oy+sy0; if (X<-30||X>w+30) continue;
+      const g = ctx.createRadialGradient(X,Y,0,X,Y,26); g.addColorStop(0,'rgba(255,240,180,.95)'); g.addColorStop(1,'rgba(255,200,80,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(X,Y,26,0,7); ctx.fill(); }
+  }
+  function zoomAt(f, cx, cy){
+    const old = mapW(); z = Math.min(10, Math.max(1, z*f)); const nw = mapW(), k = nw/old;
+    ox = (ox + cx)*k - cx; oy = cy - (cy - oy)*k; clamp(); draw();
+  }
+  cv.addEventListener('wheel', e => { e.preventDefault(); zoomAt(e.deltaY<0 ? 1.15 : 1/1.15, e.offsetX, e.offsetY); }, {passive:false});
+  cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); pointers.set(e.pointerId, {x:e.offsetX, y:e.offsetY}); });
+  cv.addEventListener('pointermove', e => {
+    if (!pointers.has(e.pointerId)) return;
+    const prev = pointers.get(e.pointerId), cur = {x:e.offsetX, y:e.offsetY};
+    pointers.set(e.pointerId, cur);
+    if (pointers.size === 2){
+      const [a,b] = [...pointers.values()], d = Math.hypot(a.x-b.x, a.y-b.y);
+      if (pinch) zoomAt(d/pinch, (a.x+b.x)/2, (a.y+b.y)/2);
+      pinch = d;
+    } else { ox -= cur.x - prev.x; oy += cur.y - prev.y; clamp(); draw(); }
+  });
+  const up = e => { pointers.delete(e.pointerId); pinch = null; };
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  cv.addEventListener('dblclick', e => zoomAt(1.8, e.offsetX, e.offsetY));
+  (function loop(){ if (view === 'atlas') draw(); requestAnimationFrame(loop); })();
+  return {resize, draw, center};
+})();
+
+/* ================= Call planner ================= */
+function callWindows(){
+  const ps = people(), step = 15*60e3, start = Math.ceil(Date.now()/step)*step, out = [];
+  let cur = null, best = {n:-1};
+  for (let i=0;i<48*4;i++){
+    const t = new Date(start + i*step), awake = ps.filter(p => isAwake(p,t));
+    if (awake.length > best.n) best = {n:awake.length, t, awake};
+    if (awake.length === ps.length){ if (!cur) cur = {s:t}; cur.e = new Date(t.getTime()+step); }
+    else if (cur){ out.push(cur); cur = null; }
+  }
+  if (cur) out.push(cur);
+  return {wins: out, best};
+}
+function whenLabel(d){
+  const tz = homeTz(), dd = (dayKey(tz,d) - dayKey(tz,new Date()))/864e5;
+  return dd === 0 ? 'Today' : dd === 1 ? 'Tomorrow' : weekday(tz,d);
+}
+
+/* ================= Render ================= */
+const $ = s => document.querySelector(s);
+function renderFamily(){
+  const h = S.home, ms = S.members;
+  const far = ms.length && h ? Math.max(...ms.map(m=>km(h,m))) : 0;
+  const zones = new Set(people().map(p => offsetMin(p.tz))).size;
+  let maxPair = 0; const ps = people();
+  for (let i=0;i<ps.length;i++) for (let j=i+1;j<ps.length;j++) maxPair = Math.max(maxPair, km(ps[i],ps[j]));
+  $('#t-family').innerHTML = `${!h ? `
+    <div class="card homecard welcome">
+      <span class="lbl">Welcome</span>
+      <div style="font-size:22px;font-weight:600">Where do you live?</div>
+      <div class="ct">Start with your home, then add your children. Their times, distances and the best call time appear automatically.</div>
+      <button class="btn" data-edit="home" style="margin-top:8px">⌂ Set your home</button>
+    </div>` : `
+    <div class="card homecard" data-fly="home">
+      <div class="row"><span class="lbl">⌂ Home · ${esc(h.name)}</span><span class="ed" data-edit="home" title="Edit">✎</span></div>
+      <div class="row"><span class="big" data-clock="${esc(h.tz)}">${hhmm(h.tz)}</span><span style="font-size:28px">${dayIcon(h.tz)}</span></div>
+      <div class="ct">${flag(h.cc)} ${esc(h.city)}, ${esc(h.country)} · ${new Intl.DateTimeFormat('en-GB',{timeZone:h.tz,weekday:'long',day:'numeric',month:'long'}).format(new Date())}</div>
+    </div>`}
+    ${h ? `<h3>Children</h3>` : ''}
+    ${ms.map(m => `
+      <div class="card" data-fly="${m.id}" style="--c:${colorOf(m)}">
+        <div class="av">${initial(m.name)}<small>${m.gender==='m'?'♂':'♀'}</small></div>
+        <div class="mid">
+          <div class="nm">${esc(m.name)}<span class="ed" data-edit="${m.id}" title="Edit">✎</span></div>
+          <div class="ct">${flag(m.cc)} ${esc(m.city)}, ${esc(m.country)}</div>
+          ${h ? `<div class="km">${fmtKm(km(h,m))} away</div>` : ''}
+        </div>
+        <div class="rt">
+          <div class="tm"><span data-clock="${esc(m.tz)}">${hhmm(m.tz)}</span><span class="ic">${dayIcon(m.tz)}</span></div>
+          <div class="df">${weekday(m.tz)} · ${diffText(m.tz)}</div>
+        </div>
+      </div>`).join('')}
+    ${h ? `<button class="btn" id="addBtn">＋ Add a child</button>` : ''}
+    ${ms.length && h ? `<h3>Family at a glance</h3>
+    <div class="stats">
+      <div class="stat"><b>${fmtKm(far)}</b><span>furthest from home</span></div>
+      <div class="stat"><b>${zones}</b><span>time zones</span></div>
+      <div class="stat"><b>${fmtKm(maxPair)}</b><span>widest spread</span></div>
+      <div class="stat"><b>${(ms.reduce((a,m)=>a+km(h,m),0)/40075).toFixed(1)}×</b><span>around the Earth, all together</span></div>
+    </div>` : ''}`;
+}
+function renderCall(){
+  const {wins, best} = callWindows(), tz = homeTz(), ps = people();
+  if (!S.home || !S.members.length) { $('#t-call').innerHTML = `<div class="callhero none"><div class="lbl">Not enough people yet</div><div class="sub" style="margin-top:8px">Add your home and at least one child, then this shows when everyone is awake for a call.</div></div>`; return; }
+  const first = wins[0];
+  const chipsAt = t => `<div class="chips">${ps.map(p => `<span class="chip" style="--c:${p.isHome?'var(--home)':colorOf(p)}"><i>${p.isHome?'⌂':initial(p.name)}</i>${esc(p.isHome?'Home':p.name)} ${hhmm(p.tz,t)}</span>`).join('')}</div>`;
+  let hero;
+  if (first) {
+    const nowIn = first.s - Date.now() < 16*60e3;
+    hero = `<div class="callhero"><div class="lbl">${nowIn ? 'Everyone is awake right now' : 'Next time everyone is awake'}</div>
+      <div class="when">${nowIn ? 'Call now 📞' : whenLabel(first.s)+' '+hhmm(tz,first.s)}</div>
+      <div class="sub">until ${hhmm(tz,first.e)} home time</div>${chipsAt(first.s)}</div>`;
+  } else {
+    hero = `<div class="callhero none"><div class="lbl">No perfect time in the next 2 days</div>
+      <div class="when">${whenLabel(best.t)} ${hhmm(tz,best.t)}</div>
+      <div class="sub">best compromise: ${best.n} of ${ps.length} awake</div>${chipsAt(best.t)}</div>`;
+  }
+  // 24h timeline from home midnight
+  const now = new Date(), hNow = localHour(tz, now), mid = now.getTime() - hNow*3600e3;
+  const slots = [...Array(48)].map((_,i) => new Date(mid + i*1800e3 + 900e3));
+  const rows = ps.map(p => {
+    const c = p.isHome ? '#ffd36b' : colorOf(p);
+    return `<div class="tlrow"><span class="who">${esc(p.isHome?'Home':p.name)}</span><div class="bar">${slots.map(t => `<i style="background:${isAwake(p,t)?c:'transparent'};opacity:${isAwake(p,t)?.85:1}"></i>`).join('')}<span class="now" style="left:${hNow/24*100}%"></span></div></div>`;
+  }).join('');
+  const all = `<div class="tlrow"><span class="who" style="color:var(--ok)">All</span><div class="bar">${slots.map(t => `<i style="background:${ps.every(p=>isAwake(p,t))?'var(--ok)':'transparent'}"></i>`).join('')}<span class="now" style="left:${hNow/24*100}%"></span></div></div>`;
+  $('#t-call').innerHTML = `${hero}
+    ${wins.length > 1 ? `<h3>More windows</h3>` + wins.slice(1,5).map(w => `<div class="win"><b>${whenLabel(w.s)} ${hhmm(tz,w.s)} – ${hhmm(tz,w.e)}</b><span>home time</span></div>`).join('') : ''}
+    <h3>Today, in home time</h3>
+    <div class="tl">${rows}${all}<div class="tlhours">${(S.h12===false?['0','6','12','18','24']:['12am','6am','12pm','6pm','12am']).map(x=>`<span>${x}</span>`).join('')}</div></div>
+    <div class="note">“Awake” means between ${hourLabel(S.awake.from)} and ${hourLabel(S.awake.to)} local time for each person. You can change this in Settings.</div>`;
+}
+function renderSettings(){
+  const opt = (sel) => [...Array(24)].map((_,i)=>`<option value="${i}" ${i===sel?'selected':''}>${hourLabel(i)}</option>`).join('');
+  $('#t-settings').innerHTML = `
+    <h3>Awake hours</h3>
+    <div class="two">
+      <div class="field"><label>Wake up</label><select class="inp" id="awF">${opt(S.awake.from)}</select></div>
+      <div class="field"><label>Go to sleep</label><select class="inp" id="awT">${opt(S.awake.to)}</select></div>
+    </div>
+    <h3>Other devices</h3>
+    <button class="btn" id="shareBtn">🔗 Copy link with family data</button>
+    <div class="note">Open this link on the phone or the notebook and the family appears there too.</div>
+    <h3>Data</h3>
+    <button class="btn ghost" id="introBtn">Show intro again</button>
+    <button class="btn danger" id="resetBtn">Start over (delete everything)</button>`;
+  $('#awF').onchange = e => { S.awake.from = +e.target.value; save(); renderCall(); };
+  $('#awT').onchange = e => { S.awake.to = +e.target.value; save(); renderCall(); };
+  $('#shareBtn').onclick = async () => {
+    const url = location.href.split('#')[0] + '#d=' + btoa(unescape(encodeURIComponent(JSON.stringify(S))));
+    try { if (navigator.share) await navigator.share({title:'WorldTime', url}); else { await navigator.clipboard.writeText(url); toast('Link copied'); } }
+    catch(e) { prompt('Copy this link:', url); }
+  };
+  $('#introBtn').onclick = () => { const i = $('#intro'); i.classList.remove('gone'); setTimeout(()=>i.classList.add('gone'), 3500); };
+  $('#resetBtn').onclick = () => {
+    if (!confirm('Delete all entries?')) return;
+    S = structuredClone(EMPTY); save(); renderAll(); openEdit('home');
+  };
+}
+function renderAll(){ renderFamily(); renderCall(); renderSettings(); refreshGlobe(); Atlas.draw(); }
+
+/* ================= Edit sheet ================= */
+let searchT, picked = null;
+function openEdit(id){
+  const isHome = id === 'home', isNew = id === 'new';
+  const m = isHome ? (S.home || {name:''}) : isNew ? {name:'', gender:'f'} : S.members.find(x=>x.id===id);
+  picked = isNew || !m.city ? null : {...m};
+  let g = m.gender || 'f';
+  $('#sheet').innerHTML = `
+    <h2>${isHome ? 'Where do you live?' : isNew ? 'Add a child' : 'Edit ' + esc(m.name)}</h2>
+    <div class="field"><label>${isHome ? 'Name' : 'Name'}</label><input class="inp" id="fName" value="${esc(m.name||'')}" placeholder="${isHome?'Your names':'Name'}"></div>
+    ${isHome ? '' : `<div class="seg" id="fG"><button data-g="f" class="${g==='f'?'on':''}">♀ Female</button><button data-g="m" class="${g==='m'?'on':''}">♂ Male</button></div>`}
+    <div class="field"><label>City</label><input class="inp" id="fCity" placeholder="Type a city…" autocomplete="off"></div>
+    <div class="results" id="fRes"></div>
+    <div id="fPicked">${picked && picked.city ? pickedHTML(picked) : ''}</div>
+    <div class="actions">
+      ${!isHome && !isNew ? `<button class="btn danger" id="fDel">Remove</button>` : ''}
+      <button class="btn ghost" id="fCancel">Cancel</button>
+      <button class="btn" id="fSave">Save</button>
+    </div>`;
+  $('#modal').classList.add('on');
+  if (isNew) setTimeout(()=>$('#fName').focus(), 50);
+  if ($('#fG')) $('#fG').onclick = e => { const b = e.target.closest('button'); if (!b) return; g = b.dataset.g; [...$('#fG').children].forEach(x=>x.classList.toggle('on', x===b)); };
+  $('#fCity').oninput = e => { clearTimeout(searchT); const q = e.target.value.trim(); if (q.length < 2) { $('#fRes').innerHTML=''; return; } searchT = setTimeout(()=>geo(q), 280); };
+  $('#fCancel').onclick = closeEdit;
+  if ($('#fDel')) $('#fDel').onclick = () => { S.members = S.members.filter(x=>x.id!==id); S.demo = false; save(); closeEdit(); renderAll(); };
+  $('#fSave').onclick = () => {
+    const name = $('#fName').value.trim();
+    if (!name) return toast('Please enter a name');
+    if (!picked || !picked.tz) return toast('Please pick a city');
+    const loc = {city:picked.city, country:picked.country, cc:picked.cc, lat:picked.lat, lon:picked.lon, tz:picked.tz};
+    if (isHome) S.home = {name, ...loc};
+    else if (isNew) S.members.push({id:Math.random().toString(36).slice(2,9), name, gender:g, ...loc});
+    else Object.assign(m, {name, gender:g, ...loc});
+    S.demo = false; save(); closeEdit(); renderAll();
+    flyTo(isHome ? S.home : (isNew ? S.members.at(-1) : m));
+  };
+}
+const pickedHTML = p => `<div class="picked">📍 ${flag(p.cc)} <b>${esc(p.city)}</b>, ${esc(p.country)}<br><span>${esc(p.tz)} · now ${hhmm(p.tz)}</span></div>`;
+async function geo(q){
+  try {
+    const r = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=6&language=en&format=json`);
+    const d = await r.json(), res = (d.results||[]).filter(x => x.timezone);
+    $('#fRes').innerHTML = res.length ? res.map((x,i) => `<button data-i="${i}">${flag(x.country_code)} ${esc(x.name)} <span>${esc([x.admin1,x.country].filter(Boolean).join(', '))}</span></button>`).join('') : `<div class="note">No city found.</div>`;
+    $('#fRes').onclick = e => {
+      const b = e.target.closest('button'); if (!b) return; const x = res[+b.dataset.i];
+      picked = {city:x.name, country:x.country||'', cc:x.country_code||'', lat:x.latitude, lon:x.longitude, tz:x.timezone};
+      $('#fPicked').innerHTML = pickedHTML(picked); $('#fRes').innerHTML = ''; $('#fCity').value = '';
+    };
+  } catch(e) { $('#fRes').innerHTML = `<div class="note">City search needs an internet connection.</div>`; }
+}
+function closeEdit(){ $('#modal').classList.remove('on'); }
+$('#modal').onclick = e => { if (e.target.id === 'modal') closeEdit(); };
+function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(()=>el.classList.remove('on'), 2200); }
+
+/* ================= Wiring ================= */
+$('#t-family').onclick = e => {
+  const ed = e.target.closest('[data-edit]'); if (ed) { e.stopPropagation(); return openEdit(ed.dataset.edit); }
+  if (e.target.closest('#addBtn')) return openEdit('new');
+  const c = e.target.closest('[data-fly]'); if (!c) return;
+  const id = c.dataset.fly; flyTo(id === 'home' ? S.home : S.members.find(m=>m.id===id));
+  if (Sheet.state === 'full') Sheet.set('half');
+};
+$('#tabs').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on', x===b));
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on', x.id==='t-'+b.dataset.t));
+  $('.scroll').scrollTop = 0;
+  if (Sheet.state === 'min') Sheet.set('half');
+};
+$('#views').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  view = b.dataset.v;
+  document.querySelectorAll('#views button').forEach(x=>x.classList.toggle('on', x===b));
+  const atlas = view === 'atlas';
+  $('#globe').style.display = atlas ? 'none' : ''; $('#atlas').style.display = atlas ? 'block' : 'none';
+  if (G) atlas ? G.pauseAnimation() : G.resumeAnimation();
+  if (atlas) Atlas.resize(); else applyTexture();
+};
+function updFmt(){ document.querySelectorAll('#fmt button').forEach(b => b.classList.toggle('on', (b.dataset.f==='12') === (S.h12!==false))); }
+$('#fmt').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.h12 = b.dataset.f === '12'; save(); updFmt(); renderAll(); };
+updFmt();
+$('#btnHome').onclick = () => flyTo(S.home || START);
+function updSpin(){ $('#btnSpin').style.opacity = spin ? 1 : .45; }
+$('#btnSpin').onclick = () => { spin = !spin; if (G) G.controls().autoRotate = spin; if (spin && G) G.pointOfView({altitude: innerWidth<820?2.8:2.2}, 1200); updSpin(); };
+// mobile bottom sheet: three heights (min = only the tabs, half, full).
+// Drag on the header, or drag down on the list once it is scrolled to the top.
+const Sheet = (() => {
+  const panel = $('#panel'), list = $('.scroll'), mobile = () => innerWidth < 820;
+  const heights = () => ({min: panel.querySelector('.tabs').getBoundingClientRect().bottom - panel.getBoundingClientRect().top + 12 + (parseFloat(getComputedStyle(list).paddingBottom) - 28),
+                         half: Math.round(innerHeight*.5), full: Math.round(innerHeight*.88)});
+  const api = {state:'half'};
+  const fab = $('.fab'), bar = $('.topbar');
+  // globe area follows the sheet; resized every frame while it moves so nothing jumps
+  function place(h, H){
+    const vis = Math.min(h, H.half);
+    elStage.style.top = bar.getBoundingClientRect().height - 46 + 'px';
+    elStage.style.bottom = vis - 24 + 'px';
+    fab.style.bottom = vis + 14 + 'px';
+  }
+  let anim = 0;
+  function follow(ms){
+    const until = performance.now() + ms;
+    cancelAnimationFrame(anim);
+    (function tick(){ resize(); if (performance.now() < until) anim = requestAnimationFrame(tick); })();
+  }
+  api.set = (name) => {
+    api.state = name;
+    panel.classList.toggle('min', name === 'min' && mobile());
+    if (!mobile()) { panel.style.height = ''; for (const el of [elStage, fab]) el.style.top = el.style.bottom = ''; resize(); return; }
+    const H = heights(), h = H[name];
+    panel.style.height = h + 'px';
+    place(h, H);
+    follow(420);
+  };
+  let y0 = 0, h0 = 0, mode = null, last = 0, lastT = 0, v = 0;
+  panel.addEventListener('touchstart', e => {
+    if (!mobile()) return;
+    y0 = last = e.touches[0].clientY; lastT = performance.now(); v = 0;
+    h0 = panel.getBoundingClientRect().height;
+    mode = e.target.closest('.grab,.tabs') ? 'maybe-head' : 'maybe-list';
+  }, {passive:true});
+  panel.addEventListener('touchmove', e => {
+    if (!mode) return;
+    const y = e.touches[0].clientY, dy = y - y0, now = performance.now();
+    v = (y - last) / Math.max(1, now - lastT); last = y; lastT = now;
+    if (mode.startsWith('maybe')) {
+      if (Math.abs(dy) < 6) return;
+      const head = mode === 'maybe-head';
+      const listDown = dy > 0 && list.scrollTop <= 0;
+      const listUp = dy < 0 && api.state !== 'full';
+      mode = head || listDown || listUp ? 'drag' : 'scroll';
+      if (mode === 'drag') { panel.classList.add('dragging'); fab.classList.add('dragging'); y0 = y; }
+    }
+    if (mode !== 'drag') return;
+    e.preventDefault();
+    const H = heights();
+    const nh = Math.max(H.min, Math.min(H.full, h0 - (y - y0)));
+    panel.style.height = nh + 'px';
+    panel.classList.toggle('min', nh < H.min + 40);
+    place(nh, H); requestAnimationFrame(resize);
+  }, {passive:false});
+  const end = () => {
+    if (mode !== 'drag') { mode = null; return; }
+    mode = null; panel.classList.remove('dragging'); fab.classList.remove('dragging');
+    const H = heights(), h = panel.getBoundingClientRect().height, order = ['min','half','full'];
+    let pick = order.reduce((a,b) => Math.abs(H[b]-h) < Math.abs(H[a]-h) ? b : a);
+    if (Math.abs(v) > .5) { const i = order.indexOf(api.state); pick = order[Math.max(0, Math.min(2, i + (v < 0 ? 1 : -1)))]; }
+    api.set(pick);
+  };
+  panel.addEventListener('touchend', end); panel.addEventListener('touchcancel', end);
+  $('#grab').onclick = () => api.set(api.state === 'half' ? 'full' : api.state === 'full' ? 'min' : 'half');
+  addEventListener('resize', () => api.set(api.state));
+  return api;
+})();
+Sheet.set('half');
+
+// live clocks
+setInterval(() => {
+  document.querySelectorAll('[data-clock]').forEach(el => el.textContent = hhmm(el.dataset.clock));
+  document.querySelectorAll('.mk').forEach(el => { const p = people().find(x=>x.id===el.dataset.id); if (p) el.querySelector('[data-time]').textContent = hhmm(p.tz); });
+}, 10e3);
+setInterval(() => { renderFamily(); renderCall(); }, 60e3);
+setInterval(() => { liveURL = null; buildComposite(); applyTexture(); }, 10*60e3); // move the terminator
+
+/* ================= Boot ================= */
+(async function boot(){
+  const bar = $('#loadbar'), t0 = Date.now();
+  bar.style.width = '15%';
+  renderAll();
+  await Promise.all([loadImg('day','vendor/earth-blue-marble.jpg'), loadImg('night','vendor/earth-night.jpg')]);
+  bar.style.width = '60%';
+  buildComposite();
+  initGlobe(); applyTexture();
+  bar.style.width = '100%';
+  const wait = Math.max(0, 3600 - (Date.now() - t0));
+  setTimeout(() => $('#intro').classList.add('gone'), wait);
+})();
+</script>
+</body>
+</html>
