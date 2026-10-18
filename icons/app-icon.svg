@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="75%"><stop offset="0" stop-color="#1a2a5e"/><stop offset=".55" stop-color="#0b1230"/><stop offset="1" stop-color="#05070f"/></radialGradient>
+    <radialGradient id="globe" cx="36%" cy="30%" r="80%"><stop offset="0" stop-color="#bfe6ff"/><stop offset=".35" stop-color="#4a9bf0"/><stop offset=".75" stop-color="#1c4fb0"/><stop offset="1" stop-color="#0a1d4f"/></radialGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%"><stop offset=".6" stop-color="#7cc4ff" stop-opacity=".45"/><stop offset="1" stop-color="#7cc4ff" stop-opacity="0"/></radialGradient>
+    <linearGradient id="ring" x1="0" x2="1"><stop offset="0" stop-color="#b89cff"/><stop offset="1" stop-color="#7cc4ff"/></linearGradient>
+    <clipPath id="c"><circle cx="256" cy="256" r="122"/></clipPath>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <g fill="#fff" opacity=".7"><circle cx="92" cy="110" r="2.5"/><circle cx="420" cy="88" r="2"/><circle cx="440" cy="300" r="2.5"/><circle cx="70" cy="380" r="2"/><circle cx="380" cy="440" r="1.8"/><circle cx="150" cy="60" r="1.6"/></g>
+  <circle cx="256" cy="256" r="170" fill="url(#glow)"/>
+  <!-- ring, back half -->
+  <ellipse cx="256" cy="256" rx="190" ry="58" fill="none" stroke="url(#ring)" stroke-width="10" stroke-linecap="round" transform="rotate(-22 256 256)" stroke-dasharray="600 1000" stroke-dashoffset="-600" opacity=".55"/>
+  <circle cx="256" cy="256" r="122" fill="url(#globe)"/>
+  <!-- soft continents -->
+  <g clip-path="url(#c)" fill="#8fd18a" opacity=".55">
+    <path d="M170 190c20-25 60-30 80-15s10 40-15 50-25 35-45 30-40-40-20-65z"/>
+    <path d="M285 170c30-10 70 0 85 25s-5 45-30 40-30 25-50 15-35-70-5-80z"/>
+    <path d="M250 290c25-5 50 15 45 40s-30 45-45 30-25-65 0-70z"/>
+  </g>
+  <circle cx="256" cy="256" r="122" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="3"/>
+  <!-- night side -->
+  <path clip-path="url(#c)" d="M300 120a140 140 0 0 1 0 272a150 150 0 0 0 0-272z" fill="#020615" opacity=".45"/>
+  <!-- ring, front half -->
+  <ellipse cx="256" cy="256" rx="190" ry="58" fill="none" stroke="url(#ring)" stroke-width="10" stroke-linecap="round" transform="rotate(-22 256 256)" stroke-dasharray="600 1000"/>
+  <!-- family pins -->
+  <circle cx="205" cy="205" r="9" fill="#ff7eb6" stroke="#fff" stroke-width="3"/>
+  <circle cx="322" cy="200" r="9" fill="#6fb6ff" stroke="#fff" stroke-width="3"/>
+  <circle cx="272" cy="318" r="9" fill="#ffd36b" stroke="#fff" stroke-width="3"/>
+  <!-- heart -->
+  <path d="M256 296c-26-17-40-31-40-46a19 19 0 0 1 40-6a19 19 0 0 1 40 6c0 15-14 29-40 46z" fill="#ff6f9f" stroke="#fff" stroke-width="5" transform="translate(0 -40)"/>
+</svg>
