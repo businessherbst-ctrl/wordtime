@@ -160,6 +160,10 @@ select.inp{appearance:none}
 .seg button{padding:10px;border-radius:10px;color:var(--mute)}
 .seg button.on[data-g=f]{background:rgba(255,126,182,.2);color:var(--female)}
 .seg button.on[data-g=m]{background:rgba(111,182,255,.2);color:var(--male)}
+.rolechips{display:flex;flex-wrap:wrap;gap:6px}
+.rolechips button{padding:7px 12px;border-radius:999px;background:var(--glass2);border:1px solid var(--line);font-size:13px;color:var(--mute)}
+.rolechips button.on{background:rgba(124,196,255,.18);border-color:rgba(124,196,255,.4);color:var(--text)}
+.role{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--c) 18%,transparent);color:var(--c);font-size:11px;font-weight:500;vertical-align:2px}
 .results{display:flex;flex-direction:column;gap:4px}
 .results button{text-align:left;padding:10px 12px;border-radius:12px;background:var(--glass2);font-size:14px}
 .results button:hover{background:rgba(255,255,255,.1)}
@@ -316,6 +320,13 @@ function colorOf(m){
   const idx = S.members.filter(x=>x.gender===m.gender).indexOf(m);
   return pal[Math.max(0,idx) % pal.length];
 }
+const ROLES = ['Daughter','Son','Grandchild','Parents','Sibling','Friend'];
+// "Your daughter is 15,680 km away from you" (plain distance when no role is set)
+function awayText(m, d){
+  if (!m.role) return fmtKm(d) + ' away';
+  const r = m.role.toLowerCase(), plural = /[^s]s$/.test(r) || /\b(and|&)\b/.test(r);
+  return `Your ${esc(r)} ${plural ? 'are' : 'is'} ${fmtKm(d)} away from you`;
+}
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const initial = n => esc((n||'?').trim().charAt(0).toUpperCase());
 
@@ -381,7 +392,7 @@ function markerEl(p){
   el.className = 'mk' + (p.isHome ? ' home' : '');
   el.style.setProperty('--c', p.isHome ? 'var(--home)' : colorOf(p));
   el.dataset.id = p.id;
-  el.innerHTML = `<div class="av">${p.isHome ? '⌂' : initial(p.name)}</div><div class="lb"><b>${esc(p.isHome ? 'Home' : p.name)}</b><span data-time>${hhmm(p.tz)}</span> <span>${dayIcon(p.tz)}</span></div>`;
+  el.innerHTML = `<div class="av">${p.isHome ? '⌂' : initial(p.name)}</div><div class="lb"><b>${esc(p.isHome ? 'Home' : p.name)}</b>${p.role ? `<span>${esc(p.role)} · </span>` : ''}<span data-time>${hhmm(p.tz)}</span> <span>${dayIcon(p.tz)}</span></div>`;
   el.onclick = () => flyTo(p);
   return el;
 }
@@ -558,21 +569,21 @@ function renderFamily(){
       <div class="row"><span class="big" data-clock="${esc(h.tz)}">${hhmm(h.tz)}</span><span style="font-size:28px">${dayIcon(h.tz)}</span></div>
       <div class="ct">${flag(h.cc)} ${esc(h.city)}, ${esc(h.country)} · ${new Intl.DateTimeFormat('en-GB',{timeZone:h.tz,weekday:'long',day:'numeric',month:'long'}).format(new Date())}</div>
     </div>`}
-    ${h ? `<h3>Children</h3>` : ''}
+    ${h ? `<h3>Family</h3>` : ''}
     ${ms.map(m => `
       <div class="card" data-fly="${m.id}" style="--c:${colorOf(m)}">
         <div class="av">${initial(m.name)}<small>${m.gender==='m'?'♂':'♀'}</small></div>
         <div class="mid">
-          <div class="nm">${esc(m.name)}<span class="ed" data-edit="${m.id}" title="Edit">✎</span></div>
+          <div class="nm">${esc(m.name)}${m.role ? `<span class="role">${esc(m.role)}</span>` : ''}<span class="ed" data-edit="${m.id}" title="Edit">✎</span></div>
           <div class="ct">${flag(m.cc)} ${esc(m.city)}, ${esc(m.country)}</div>
-          ${h ? `<div class="km">${fmtKm(km(h,m))} away</div>` : ''}
+          ${h ? `<div class="km">${awayText(m, km(h,m))}</div>` : ''}
         </div>
         <div class="rt">
           <div class="tm"><span data-clock="${esc(m.tz)}">${hhmm(m.tz)}</span><span class="ic">${dayIcon(m.tz)}</span></div>
           <div class="df">${weekday(m.tz)} · ${diffText(m.tz)}</div>
         </div>
       </div>`).join('')}
-    ${h ? `<button class="btn" id="addBtn">＋ Add a child</button>` : ''}
+    ${h ? `<button class="btn" id="addBtn">＋ Add a person</button>` : ''}
     ${ms.length && h ? `<h3>Family at a glance</h3>
     <div class="stats">
       <div class="stat"><b>${fmtKm(far)}</b><span>furthest from home</span></div>
@@ -648,9 +659,10 @@ function openEdit(id){
   picked = isNew || !m.city ? null : {...m};
   let g = m.gender || 'f';
   $('#sheet').innerHTML = `
-    <h2>${isHome ? 'Where do you live?' : isNew ? 'Add a child' : 'Edit ' + esc(m.name)}</h2>
+    <h2>${isHome ? 'Where do you live?' : isNew ? 'Add a person' : 'Edit ' + esc(m.name)}</h2>
     <div class="field"><label>${isHome ? 'Name' : 'Name'}</label><input class="inp" id="fName" value="${esc(m.name||'')}" placeholder="${isHome?'Your names':'Name'}"></div>
-    ${isHome ? '' : `<div class="seg" id="fG"><button data-g="f" class="${g==='f'?'on':''}">♀ Female</button><button data-g="m" class="${g==='m'?'on':''}">♂ Male</button></div>`}
+    ${isHome ? '' : `<div class="field"><label>Role (optional)</label><input class="inp" id="fRole" value="${esc(m.role||'')}" placeholder="e.g. Daughter, Parents, Friend…" autocomplete="off"><div class="rolechips" id="fRoles">${ROLES.map(r=>`<button data-r="${r}">${r}</button>`).join('')}</div></div>
+    <div class="seg" id="fG"><button data-g="f" class="${g==='f'?'on':''}">♀ Female</button><button data-g="m" class="${g==='m'?'on':''}">♂ Male</button></div>`}
     <div class="field"><label>City</label><input class="inp" id="fCity" placeholder="Type a city…" autocomplete="off"></div>
     <div class="results" id="fRes"></div>
     <div id="fPicked">${picked && picked.city ? pickedHTML(picked) : ''}</div>
@@ -661,18 +673,20 @@ function openEdit(id){
     </div>`;
   $('#modal').classList.add('on');
   if (isNew) setTimeout(()=>$('#fName').focus(), 50);
+  const syncRoles = () => document.querySelectorAll('#fRoles button').forEach(b => b.classList.toggle('on', b.dataset.r.toLowerCase() === $('#fRole').value.trim().toLowerCase()));
+  if ($('#fRoles')) { syncRoles(); $('#fRole').oninput = syncRoles; $('#fRoles').onclick = e => { const b = e.target.closest('button'); if (!b) return; $('#fRole').value = b.classList.contains('on') ? '' : b.dataset.r; syncRoles(); }; }
   if ($('#fG')) $('#fG').onclick = e => { const b = e.target.closest('button'); if (!b) return; g = b.dataset.g; [...$('#fG').children].forEach(x=>x.classList.toggle('on', x===b)); };
   $('#fCity').oninput = e => { clearTimeout(searchT); const q = e.target.value.trim(); if (q.length < 2) { $('#fRes').innerHTML=''; return; } searchT = setTimeout(()=>geo(q), 280); };
   $('#fCancel').onclick = closeEdit;
   if ($('#fDel')) $('#fDel').onclick = () => { S.members = S.members.filter(x=>x.id!==id); S.demo = false; save(); closeEdit(); renderAll(); };
   $('#fSave').onclick = () => {
-    const name = $('#fName').value.trim();
+    const name = $('#fName').value.trim(), role = $('#fRole') ? $('#fRole').value.trim() : '';
     if (!name) return toast('Please enter a name');
     if (!picked || !picked.tz) return toast('Please pick a city');
     const loc = {city:picked.city, country:picked.country, cc:picked.cc, lat:picked.lat, lon:picked.lon, tz:picked.tz};
     if (isHome) S.home = {name, ...loc};
-    else if (isNew) S.members.push({id:Math.random().toString(36).slice(2,9), name, gender:g, ...loc});
-    else Object.assign(m, {name, gender:g, ...loc});
+    else if (isNew) S.members.push({id:Math.random().toString(36).slice(2,9), name, gender:g, role, ...loc});
+    else Object.assign(m, {name, gender:g, role, ...loc});
     S.demo = false; save(); closeEdit(); renderAll();
     flyTo(isHome ? S.home : (isNew ? S.members.at(-1) : m));
   };
